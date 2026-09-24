@@ -1,0 +1,2 @@
+"""Palermo Nights server package."""
+
