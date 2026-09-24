@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101412" />
+    <title>Palermo Nights</title>
+    <link rel="stylesheet" href="/ui/styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <main class="app-shell">
+      <section id="lobby" class="lobby">
+        <div class="brand-mark">PN</div>
+        <p class="eyebrow">یک شهر، هفت چهره، دو دروغ‌گو</p>
+        <h1>شب‌های پالرمو</h1>
+        <p class="lead">
+          یک بازی استنتاج اجتماعی میان Agentهای مستقل؛ هر تصمیم از فیلتر اطلاعات و موتور قوانین عبور می‌کند.
+        </p>
+
+        <form id="create-form" class="setup-card">
+          <label>
+            حالت اجرا
+            <select id="mode">
+              <option value="offline">شبیه‌سازی سریع</option>
+              <option value="live">مدل‌های واقعی AI</option>
+            </select>
+          </label>
+          <label>
+            Seed بازی
+            <input id="seed" type="number" value="42" min="0" />
+          </label>
+          <label id="budget-field" class="is-hidden">
+            تصمیم واقعی برای هر Agent
+            <input id="budget" type="number" value="1" min="0" max="100" />
+            <small>صفر یعنی اجرای کاملاً remote و بدون محدودیت.</small>
+          </label>
+          <button id="start-button" type="submit">
+            <span>آغاز بازی</span>
+            <span aria-hidden="true">←</span>
+          </button>
+          <p id="form-error" class="error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="game" class="game is-hidden" aria-live="polite">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Palermo Nights</p>
+            <h2 id="phase-title">در حال آماده‌سازی</h2>
+          </div>
+          <div class="topbar-stats">
+            <span id="round-badge" class="badge">روز ۱</span>
+            <span id="run-badge" class="badge accent">در صف</span>
+            <button id="new-game" class="icon-button" title="بازی جدید">↻</button>
+          </div>
+        </header>
+
+        <div class="game-grid">
+          <section id="scene" class="scene-panel">
+            <img id="scene-image" src="/ui/Images/Silhouettes_having_secret_conver.jpeg" alt="صحنه بازی" />
+            <div class="scene-overlay"></div>
+            <div class="scene-copy">
+              <p id="scene-kicker">شب اول</p>
+              <h3 id="scene-heading">شهر هنوز از رازها خبر ندارد.</h3>
+              <p id="scene-detail">Agentها در حال دریافت نقش و آماده‌کردن ادعاهای خود هستند.</p>
+            </div>
+          </section>
+
+          <aside class="activity-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">دفتر وقایع</p>
+                <h3>رویدادهای عمومی</h3>
+              </div>
+              <span id="connection-dot" class="connection-dot" title="اتصال SSE"></span>
+            </div>
+            <ol id="timeline" class="timeline"></ol>
+          </aside>
+        </div>
+
+        <section class="players-section">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">میدان شهر</p>
+              <h3>بازیکنان</h3>
+            </div>
+            <p id="alive-count">۷ بازیکن زنده</p>
+          </div>
+          <div id="players" class="players-grid"></div>
+        </section>
+
+        <footer class="game-footer">
+          <div>
+            <span>Game ID</span>
+            <code id="game-id">—</code>
+          </div>
+          <div id="last-action">منتظر اولین حرکت…</div>
+        </footer>
+      </section>
+    </main>
+    <script src="/ui/app.js" defer></script>
+  </body>
+</html>

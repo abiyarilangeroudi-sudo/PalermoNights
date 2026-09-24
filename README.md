@@ -66,6 +66,22 @@ python3 -m venv .venv
 ```
 
 OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
+The Persian game dashboard is available at `http://127.0.0.1:8000/ui/` (the root URL redirects there).
+
+## Browser AI match
+
+The dashboard starts a server-side seven-agent match without returning any player token or provider credential to the browser. Choose `offline` for a deterministic local simulation or `live` for the configured provider pool. Live mode's action budget caps remote decisions per agent; validated fallback decisions finish the match after that budget is spent.
+
+The browser follows public events over Server-Sent Events (SSE), which fits the one-way server-to-spectator flow and reconnects automatically:
+
+```text
+POST /games/ai
+GET  /game/{game_id}/run-state
+POST /game/{game_id}/run/cancel
+GET  /game/{game_id}/stream
+```
+
+The stream contains public game events and sanitized run progress only. Private investigation results, hidden roles, player tokens, model prompts, and API keys are never included.
 
 ## API flow
 
