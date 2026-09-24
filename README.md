@@ -16,6 +16,45 @@ A server-authoritative backend for the seven-player hidden-information game in t
 
 AI memory, beliefs, hypotheses, and strategy selection remain outside the engine by design.
 
+## AI agents
+
+Remote agents live under `app/ai/` and only receive the filtered public view, their own private view, legal actions, and their visible event feed. They never receive a `Game` or `Player` object. The current provider pool supports:
+
+- Gemini `generateContent` with JSON Schema output.
+- Hetzner's OpenAI-compatible Qwen endpoint. Thinking is disabled for this route so the completion budget produces final JSON instead of reasoning-only output.
+- OpenAI Responses with strict Structured Outputs for the optional analyst.
+- TypeSafe Jev as an optional legal-target gate for votes and night actions. Jev never writes player-facing dialogue.
+
+Agent memory, hypotheses, and Mafia probabilities are local agent state. Investigation results and public role reveals update those beliefs without changing engine-owned Trust.
+
+Validate configuration without making network requests:
+
+```bash
+.venv/bin/python -m app.ai.smoke
+```
+
+Send one minimal, redacted smoke request per configured provider:
+
+```bash
+.venv/bin/python -m app.ai.smoke --live
+```
+
+Run a deterministic, offline seven-agent match:
+
+```bash
+.venv/bin/python -m app.simulate
+```
+
+Run a bounded integration match. By default each agent gets one remote model decision and one Jev gate decision; all later actions use the validated deterministic fallback so development runs have a predictable cost and duration:
+
+```bash
+.venv/bin/python -m app.simulate --live
+```
+
+Use `--live-action-budget 0` only when an intentionally unbounded, fully remote match is desired. Each decision has a separate hard deadline even when provider failover is configured.
+
+Never expose `.env` or any provider key to a browser. `.env` is ignored by Git; `.env.example` contains only safe placeholders.
+
 ## Run locally
 
 Python 3.11+ is required.
@@ -86,3 +125,8 @@ The core engine has no third-party dependency, so its test suite runs even befor
 python3 -m unittest discover -v
 ```
 
+The complete suite, including async provider adapters and a full headless match, runs with:
+
+```bash
+.venv/bin/pytest
+```
