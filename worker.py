@@ -1,10 +1,17 @@
 """Cloudflare Worker entrypoint for the FastAPI backend and Frontend assets."""
 
+import os
+
 from fastapi import Request
 from fastapi.responses import Response
 from workers import asgi
 
-from app.main import app
+# The regular FastAPI server mounts Frontend/ from its local filesystem. Workers
+# serves those files through the ASSETS binding instead, so disable that mount
+# before importing the application and registering its routes.
+os.environ["PALERMO_CLOUDFLARE_WORKER"] = "1"
+
+from app.main import app  # noqa: E402
 
 
 def _frontend_asset_path(path: str) -> str:

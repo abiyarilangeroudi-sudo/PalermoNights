@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import secrets
 from datetime import UTC, datetime
 from pathlib import Path
@@ -413,5 +414,5 @@ async def root_redirect():
 
 
 frontend_path = Path(__file__).resolve().parent.parent / "Frontend"
-if frontend_path.exists():
+if os.getenv("PALERMO_CLOUDFLARE_WORKER") != "1" and frontend_path.exists():
     app.mount("/ui", StaticFiles(directory=frontend_path, html=True), name="ui")
