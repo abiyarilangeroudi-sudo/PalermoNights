@@ -183,7 +183,7 @@ Open `http://127.0.0.1:8017/ui/`. This test server uses offline agents and makes
 
 ## Cloudflare Workers deployment
 
-The repository includes a Python Worker entrypoint in `src/worker.py` and a
+The repository includes a Python Worker entrypoint in `worker.py` and a
 `wrangler.jsonc` configuration. Cloudflare serves the `Frontend/` directory as
 Workers Static Assets while the FastAPI routes handle the API first. The
 entrypoint also translates the existing `/ui/...` browser paths to the asset
