@@ -384,9 +384,66 @@ const copy = {
   },
 };
 
-Object.assign(copy.fa, { stopped: "اجرای بازی متوقف شد", failedText: "بازی به دلیل خطای اجرا ادامه پیدا نکرد. می‌توانی بازی جدیدی شروع کنی.", cancelledText: "این مسابقه لغو شده است.", reconnect: "تلاش دوباره برای اتصال", sessionExpired: "این مسابقه دیگر در سرور موجود نیست. بازی جدیدی شروع کن." });
-Object.assign(copy.en, { stopped: "The game has stopped", failedText: "The game could not continue because of an error. You can start a new game.", cancelledText: "This match was cancelled.", reconnect: "RETRY CONNECTION", sessionExpired: "This match is no longer available on the server. Start a new game." });
-Object.assign(copy.de, { stopped: "Das Spiel wurde angehalten", failedText: "Das Spiel konnte wegen eines Fehlers nicht fortgesetzt werden. Du kannst ein neues Spiel starten.", cancelledText: "Diese Partie wurde abgebrochen.", reconnect: "VERBINDUNG ERNEUT VERSUCHEN", sessionExpired: "Diese Partie ist auf dem Server nicht mehr verfügbar. Starte ein neues Spiel." });
+Object.assign(copy.fa, { tutorial: "آموزش و قوانین بازی", stopped: "اجرای بازی متوقف شد", failedText: "بازی به دلیل خطای اجرا ادامه پیدا نکرد. می‌توانی بازی جدیدی شروع کنی.", cancelledText: "این مسابقه لغو شده است.", reconnect: "تلاش دوباره برای اتصال", sessionExpired: "این مسابقه دیگر در سرور موجود نیست. بازی جدیدی شروع کن." });
+Object.assign(copy.en, { tutorial: "HOW TO PLAY & RULES", stopped: "The game has stopped", failedText: "The game could not continue because of an error. You can start a new game.", cancelledText: "This match was cancelled.", reconnect: "RETRY CONNECTION", sessionExpired: "This match is no longer available on the server. Start a new game." });
+Object.assign(copy.de, { tutorial: "ANLEITUNG & REGELN", stopped: "Das Spiel wurde angehalten", failedText: "Das Spiel konnte wegen eines Fehlers nicht fortgesetzt werden. Du kannst ein neues Spiel starten.", cancelledText: "Diese Partie wurde abgebrochen.", reconnect: "VERBINDUNG ERNEUT VERSUCHEN", sessionExpired: "Diese Partie ist auf dem Server nicht mehr verfügbar. Starte ein neues Spiel." });
+
+const tutorialGuide = {
+  en: {
+    kicker: "COMPLETE BEGINNER'S GUIDE",
+    title: "How to play Palermo Nights",
+    intro: "A social-deduction game for seven characters: you are the only human, while six independent AI agents speak, question, vote, deceive, and use their roles. Your true role is secret. Read the city, protect your faction, and survive until its victory condition is met.",
+    summary: [["7", "players"], ["2", "hidden factions"], ["1", "human player"]],
+    sections: [
+      ["1. Objective", `<p>Every player belongs to either the <strong>Citizen faction</strong> or the <strong>Mafia faction</strong>. Citizens win by eliminating both Mafia members. Mafia wins as soon as the number of living Mafia members equals the number of living Citizens.</p><p>Your personal role may give you private information or a night ability, but victory belongs to your whole faction.</p>`],
+      ["2. Roles in the city", `<p>Roles are assigned randomly and remain secret until a player is eliminated.</p><div class="tutorial-role-grid"><div class="tutorial-role"><b>Mafia Boss × 1</b><p>Knows the Deputy, chooses the Mafia's night target, and must hide among the city.</p></div><div class="tutorial-role"><b>Mafia Deputy × 1</b><p>Knows the Boss. If the Boss is eliminated, the Deputy takes command of future night attacks.</p></div><div class="tutorial-role"><b>Doctor × 1</b><p>Protects one living player each night, including themself. The same target cannot be protected on two consecutive nights.</p></div><div class="tutorial-role"><b>Detective × 1</b><p>Investigates one living player each night and privately learns that player's exact role.</p></div><div class="tutorial-role"><b>Citizens × 3</b><p>Have no night ability. Their power is observation, discussion, questioning, and voting.</p></div></div>`],
+      ["3. Hidden identity and public claims", `<p>After seeing your true role, you publicly claim to be a <strong>Citizen, Doctor, or Detective</strong>. Anyone—including Mafia—may lie. Mafia roles can never be claimed directly.</p><p>A claim is not proof. Compare it with later statements, votes, night results, and contradictions.</p>`],
+      ["4. Day discussion", `<ol><li>Living players speak in a random order.</li><li>On your turn you may make a statement, ask another living player a question, or remain silent.</li><li>Questions must be answered before voting begins.</li><li>Use <strong>@</strong> while writing to select a character accurately.</li></ol><p>The event journal records public facts and your own private information. Other players' hidden roles and private clues are never shown to you.</p>`],
+      ["5. Voting and the special first day", `<p>Every living player submits a main vote and names the person they trust most. While both Mafia members are alive, a second suspect must also be selected. You cannot select yourself, and the chosen people must be different.</p><ul><li><strong>Day 1:</strong> the top-voted player is shunned, not eliminated. That player cannot use a night ability; the Doctor and Detective also cannot target them that night. The shun ends in the morning.</li><li><strong>Day 2 and later:</strong> the top-voted player is eliminated. Their true role—and any recorded last will—is revealed.</li><li><strong>Tie:</strong> nobody is punished or eliminated.</li></ul>`],
+      ["6. Night", `<p>Night abilities resolve together:</p><ul><li>The active Mafia leader attacks one Citizen.</li><li>The Doctor protects one eligible player. If that person is attacked, nobody dies.</li><li>The Detective investigates one eligible player and receives a private result.</li><li>Citizens wait for morning.</li></ul><p>If the Boss is dead, the Deputy becomes the active attacker. In the morning, the city learns whether someone died and sees the victim's true role.</p>`],
+      ["7. Elimination and the end of the game", `<p>Eliminated players no longer speak, vote, or act at night. The game checks victory immediately after every elimination and night resolution.</p><div class="tutorial-note"><strong>Citizens win:</strong> both Mafia members are eliminated.<br><strong>Mafia wins:</strong> living Mafia reaches parity with living Citizens—for example, two Mafia against two Citizens.</div>`],
+      ["8. Beginner strategy", `<ul><li>Do not trust a role claim by itself; track whether actions and explanations remain consistent.</li><li>Ask direct questions and remember who avoids answering.</li><li>Use the trusted-player and second-suspect choices as real information about alliances.</li><li>If you have a special role, revealing it too early may make you a Mafia target; waiting too long may waste your information.</li><li>Keep private notes in the journal and separate confirmed facts from theories.</li></ul>`],
+    ],
+    back: "BACK TO HOME",
+    start: "START A NEW GAME",
+  },
+  de: {
+    kicker: "VOLLSTÄNDIGE ANLEITUNG FÜR EINSTEIGER",
+    title: "So spielt man Palermo bei Nacht",
+    intro: "Ein Social-Deduction-Spiel mit sieben Figuren: Du bist der einzige Mensch, während sechs unabhängige KI-Agenten reden, fragen, abstimmen, täuschen und ihre Rollen einsetzen. Deine wahre Rolle ist geheim. Beobachte die Stadt, schütze deine Fraktion und überlebe bis zu ihrem Sieg.",
+    summary: [["7", "Spieler"], ["2", "geheime Fraktionen"], ["1", "menschlicher Spieler"]],
+    sections: [
+      ["1. Ziel des Spiels", `<p>Jeder gehört entweder zur <strong>Bürgerfraktion</strong> oder zur <strong>Mafiafraktion</strong>. Die Bürger gewinnen, wenn beide Mafiosi eliminiert sind. Die Mafia gewinnt, sobald gleich viele Mafiosi wie Bürger leben.</p><p>Deine Rolle kann dir geheime Informationen oder eine Nachtfähigkeit geben, aber der Sieg gilt für deine gesamte Fraktion.</p>`],
+      ["2. Rollen in der Stadt", `<p>Die Rollen werden zufällig verteilt und bleiben bis zur Eliminierung geheim.</p><div class="tutorial-role-grid"><div class="tutorial-role"><b>Mafia-Boss × 1</b><p>Kennt den Stellvertreter, wählt nachts das Angriffsziel und muss seine Identität verbergen.</p></div><div class="tutorial-role"><b>Mafia-Stellvertreter × 1</b><p>Kennt den Boss und übernimmt nach dessen Eliminierung die Nachtangriffe.</p></div><div class="tutorial-role"><b>Arzt × 1</b><p>Schützt jede Nacht eine lebende Person, auch sich selbst. Dieselbe Person darf nicht in zwei aufeinanderfolgenden Nächten geschützt werden.</p></div><div class="tutorial-role"><b>Detektiv × 1</b><p>Untersucht jede Nacht eine lebende Person und erfährt heimlich deren genaue Rolle.</p></div><div class="tutorial-role"><b>Bürger × 3</b><p>Haben keine Nachtfähigkeit. Ihre Stärke sind Beobachtung, Diskussion, Fragen und Abstimmung.</p></div></div>`],
+      ["3. Geheime Identität und öffentliche Behauptung", `<p>Nachdem du deine echte Rolle gesehen hast, behauptest du öffentlich, <strong>Bürger, Arzt oder Detektiv</strong> zu sein. Jeder darf lügen—auch die Mafia. Mafia-Rollen können nie direkt behauptet werden.</p><p>Eine Behauptung ist kein Beweis. Vergleiche sie mit späteren Aussagen, Stimmen, Nachtresultaten und Widersprüchen.</p>`],
+      ["4. Diskussion am Tag", `<ol><li>Die lebenden Spieler sprechen in zufälliger Reihenfolge.</li><li>Du kannst in deinem Zug etwas sagen, einer lebenden Person eine Frage stellen oder schweigen.</li><li>Alle Fragen müssen vor der Abstimmung beantwortet werden.</li><li>Tippe beim Schreiben <strong>@</strong>, um eine Figur eindeutig auszuwählen.</li></ol><p>Das Ereignisprotokoll enthält öffentliche Fakten und deine eigenen geheimen Informationen. Verborgene Rollen und private Hinweise anderer Spieler bleiben unsichtbar.</p>`],
+      ["5. Abstimmung und der besondere erste Tag", `<p>Jeder lebende Spieler gibt eine Hauptstimme ab und nennt seine vertrauenswürdigste Person. Solange beide Mafiosi leben, muss zusätzlich ein zweiter Verdacht gewählt werden. Du darfst dich nicht selbst wählen; alle ausgewählten Personen müssen verschieden sein.</p><ul><li><strong>Tag 1:</strong> Die Person mit den meisten Stimmen wird geächtet, nicht eliminiert. Sie kann nachts keine Fähigkeit einsetzen; Arzt und Detektiv können sie in dieser Nacht ebenfalls nicht als Ziel wählen. Am Morgen endet die Ächtung.</li><li><strong>Ab Tag 2:</strong> Die Person mit den meisten Stimmen wird eliminiert. Ihre echte Rolle und ein vorhandenes Testament werden enthüllt.</li><li><strong>Gleichstand:</strong> Niemand wird bestraft oder eliminiert.</li></ul>`],
+      ["6. Nacht", `<p>Alle Nachtfähigkeiten werden gemeinsam ausgewertet:</p><ul><li>Der aktive Mafia-Anführer greift einen Bürger an.</li><li>Der Arzt schützt eine erlaubte Person. Wird sie angegriffen, stirbt niemand.</li><li>Der Detektiv untersucht eine erlaubte Person und erhält das Ergebnis privat.</li><li>Die Bürger warten auf den Morgen.</li></ul><p>Ist der Boss tot, übernimmt der Stellvertreter den Angriff. Am Morgen erfährt die Stadt, ob jemand gestorben ist, und sieht die wahre Rolle des Opfers.</p>`],
+      ["7. Eliminierung und Spielende", `<p>Eliminierte Spieler dürfen nicht mehr reden, abstimmen oder nachts handeln. Nach jeder Eliminierung und jeder Nacht wird sofort geprüft, ob eine Fraktion gewonnen hat.</p><div class="tutorial-note"><strong>Die Bürger gewinnen:</strong> Beide Mafiosi sind eliminiert.<br><strong>Die Mafia gewinnt:</strong> Es leben gleich viele Mafiosi wie Bürger—zum Beispiel zwei Mafiosi gegen zwei Bürger.</div>`],
+      ["8. Tipps für Einsteiger", `<ul><li>Vertraue keiner Rollenbehauptung allein; prüfe, ob Aussagen und Handlungen zusammenpassen.</li><li>Stelle direkte Fragen und merke dir, wer Antworten vermeidet.</li><li>Behandle Vertrauensperson und zweiten Verdacht als echte Hinweise auf Bündnisse.</li><li>Mit einer Spezialrolle macht dich ein zu frühes Geständnis zum Ziel; zu langes Schweigen kann deine Informationen wertlos machen.</li><li>Nutze private Notizen und trenne bestätigte Fakten von Vermutungen.</li></ul>`],
+    ],
+    back: "ZURÜCK ZUM START",
+    start: "NEUES SPIEL STARTEN",
+  },
+  fa: {
+    kicker: "راهنمای کامل برای بازیکن تازه‌کار",
+    title: "چگونه شب‌های پالرمو را بازی کنیم؟",
+    intro: "یک بازی استنتاج اجتماعی با هفت شخصیت: تو تنها بازیکن انسانی هستی و شش Agent مستقل هوش مصنوعی صحبت می‌کنند، سؤال می‌پرسند، رأی می‌دهند، فریب می‌دهند و از نقش‌هایشان استفاده می‌کنند. نقش واقعی تو محرمانه است؛ شهر را بخوان، از جناحت محافظت کن و تا پیروزی آن زنده بمان.",
+    summary: [["۷", "بازیکن"], ["۲", "جناح مخفی"], ["۱", "بازیکن انسانی"]],
+    sections: [
+      ["۱. هدف بازی", `<p>هر بازیکن عضو یکی از دو جناح <strong>شهروندان</strong> یا <strong>مافیا</strong> است. شهروندان با حذف هر دو عضو مافیا برنده می‌شوند. مافیا زمانی برنده است که تعداد مافیای زنده با تعداد شهروندان زنده برابر شود.</p><p>نقش شخصی تو ممکن است اطلاعات محرمانه یا توانایی شبانه بدهد، اما پیروزی متعلق به کل جناح توست.</p>`],
+      ["۲. نقش‌های شهر", `<p>نقش‌ها به‌صورت تصادفی تقسیم می‌شوند و تا زمان حذف بازیکن مخفی می‌مانند.</p><div class="tutorial-role-grid"><div class="tutorial-role"><b>رئیس مافیا × ۱</b><p>معاون را می‌شناسد، هدف حمله شبانه را انتخاب می‌کند و باید هویتش را از شهر پنهان کند.</p></div><div class="tutorial-role"><b>معاون مافیا × ۱</b><p>رئیس را می‌شناسد و اگر رئیس حذف شود، فرمان حمله‌های شبانه را در دست می‌گیرد.</p></div><div class="tutorial-role"><b>پزشک × ۱</b><p>هر شب از یک بازیکن زنده، حتی خودش، محافظت می‌کند. نمی‌تواند دو شب پیاپی از یک نفر محافظت کند.</p></div><div class="tutorial-role"><b>کارآگاه × ۱</b><p>هر شب یک بازیکن زنده را بررسی می‌کند و نقش دقیق او را به‌صورت محرمانه می‌فهمد.</p></div><div class="tutorial-role"><b>شهروند × ۳</b><p>توانایی شبانه ندارند؛ قدرتشان در مشاهده، بحث، سؤال و رأی‌دادن است.</p></div></div>`],
+      ["۳. هویت مخفی و ادعای عمومی", `<p>پس از دیدن نقش واقعی، باید در برابر شهر ادعا کنی که <strong>شهروند، پزشک یا کارآگاه</strong> هستی. همه—از جمله مافیا—اجازه دارند دروغ بگویند. نمی‌توان مستقیماً ادعای نقش مافیا کرد.</p><p>ادعا مدرک نیست. آن را با گفته‌های بعدی، رأی‌ها، نتیجه شب و تناقض‌های رفتاری مقایسه کن.</p>`],
+      ["۴. گفت‌وگوی روز", `<ol><li>بازیکنان زنده با ترتیبی تصادفی صحبت می‌کنند.</li><li>در نوبت خود می‌توانی تحلیل یا اتهام بنویسی، از یک بازیکن زنده سؤال بپرسی یا سکوت کنی.</li><li>پیش از رأی‌گیری، تمام سؤال‌ها باید پاسخ داده شوند.</li><li>هنگام نوشتن از علامت <strong>@</strong> برای انتخاب دقیق شخصیت استفاده کن.</li></ol><p>دفتر وقایع، واقعیت‌های عمومی و اطلاعات محرمانه خودت را ثبت می‌کند. نقش‌ها و سرنخ‌های خصوصی دیگران هرگز به تو نمایش داده نمی‌شوند.</p>`],
+      ["۵. رأی‌گیری و قانون ویژه روز اول", `<p>هر بازیکن زنده یک رأی اصلی ثبت می‌کند و قابل‌اعتمادترین فرد را نیز مشخص می‌کند. تا زمانی که هر دو عضو مافیا زنده‌اند، انتخاب مظنون دوم هم اجباری است. نمی‌توانی خودت را انتخاب کنی و گزینه‌ها باید افراد متفاوتی باشند.</p><ul><li><strong>روز اول:</strong> فرد دارای بیشترین رأی حذف نمی‌شود، بلکه برای یک شب محروم می‌شود. او نمی‌تواند از توانایی شبانه استفاده کند و پزشک و کارآگاه هم نمی‌توانند آن شب او را هدف بگیرند. محرومیت صبح پایان می‌یابد.</li><li><strong>از روز دوم:</strong> فرد دارای بیشترین رأی حذف می‌شود و نقش واقعی و وصیت ثبت‌شده‌اش آشکار می‌شود.</li><li><strong>تساوی آرا:</strong> هیچ‌کس مجازات یا حذف نمی‌شود.</li></ul>`],
+      ["۶. شب", `<p>توانایی‌های شبانه با هم محاسبه می‌شوند:</p><ul><li>فرمانده فعال مافیا به یک شهروند حمله می‌کند.</li><li>پزشک از یک هدف مجاز محافظت می‌کند؛ اگر همان فرد هدف حمله باشد، کسی کشته نمی‌شود.</li><li>کارآگاه یک هدف مجاز را بررسی می‌کند و نتیجه را فقط خودش می‌بیند.</li><li>شهروندان تا صبح منتظر می‌مانند.</li></ul><p>اگر رئیس مافیا مرده باشد، معاون حمله را انجام می‌دهد. صبح، شهر می‌فهمد آیا کسی کشته شده و نقش واقعی قربانی را می‌بیند.</p>`],
+      ["۷. حذف و پایان بازی", `<p>بازیکن حذف‌شده دیگر حق صحبت، رأی یا اقدام شبانه ندارد. پس از هر حذف و پایان هر شب، شرط پیروزی فوراً بررسی می‌شود.</p><div class="tutorial-note"><strong>پیروزی شهروندان:</strong> هر دو عضو مافیا حذف شوند.<br><strong>پیروزی مافیا:</strong> تعداد مافیای زنده با شهروندان زنده برابر شود؛ مثلاً دو مافیا در برابر دو شهروند.</div>`],
+      ["۸. راهبردهای ساده برای شروع", `<ul><li>فقط به ادعای نقش اعتماد نکن؛ هماهنگی حرف‌ها و رفتارها را دنبال کن.</li><li>سؤال مستقیم بپرس و به کسانی که از پاسخ فرار می‌کنند توجه کن.</li><li>انتخاب فرد قابل‌اعتماد و مظنون دوم را سرنخی درباره اتحادها بدان.</li><li>اگر نقش ویژه داری، افشای خیلی زود تو را هدف مافیا می‌کند؛ سکوت طولانی هم ممکن است اطلاعاتت را بی‌فایده کند.</li><li>در دفتر وقایع یادداشت خصوصی بنویس و واقعیت قطعی را از حدس جدا نگه دار.</li></ul>`],
+    ],
+    back: "بازگشت به خانه",
+    start: "شروع بازی جدید",
+  },
+};
 
 const state = {
   lang: "en",
@@ -786,11 +843,14 @@ function setLanguage(language) {
   $("#home-title").innerHTML = text("homeTitle");
   $("#home-lead").textContent = text("homeLead");
   $("#new-game-label").textContent = text("newGame");
+  const tutorialLabel = $("#tutorial-open-label");
+  if (tutorialLabel) tutorialLabel.textContent = text("tutorial");
   $("#character-kicker").textContent = text("characterKicker");
   $("#character-title").textContent = text("characterTitle");
   $("#character-lead").textContent = text("characterLead");
   $("#loading-text").textContent = text("loading");
   renderCharacters();
+  renderTutorial();
   renderFacts();
   renderArchives();
 }
@@ -798,6 +858,30 @@ function setLanguage(language) {
 function showScreen(id) {
   $$(".screen").forEach((screen) => screen.classList.toggle("is-active", screen.id === id));
   if (id !== "story-screen") setBackgroundMusic("cityMusic");
+}
+
+function renderTutorial() {
+  const content = $("#tutorial-content");
+  const guide = tutorialGuide[state.lang];
+  if (!content || !guide) return;
+  content.innerHTML = `
+    <header class="tutorial-hero">
+      <p class="eyebrow">${guide.kicker}</p>
+      <h1>${guide.title}</h1>
+      <p>${guide.intro}</p>
+      <div class="tutorial-summary">
+        ${guide.summary.map(([value, label]) => `<div><b>${value}</b><span>${label}</span></div>`).join("")}
+      </div>
+    </header>
+    ${guide.sections.map(([title, body]) => `
+      <section class="tutorial-section">
+        <h2>${title}</h2>
+        ${body}
+      </section>
+    `).join("")}
+  `;
+  $("#tutorial-back-label").textContent = guide.back;
+  $("#tutorial-start-label").textContent = guide.start;
 }
 
 function renderCharacters() {
@@ -1697,6 +1781,14 @@ document.addEventListener?.("click", (event) => {
 });
 
 $("#new-game").addEventListener("click", () => showScreen("character-screen"));
+$("#tutorial-open")?.addEventListener("click", () => {
+  renderTutorial();
+  showScreen("tutorial-screen");
+  $("#tutorial-screen")?.scrollTo?.(0, 0);
+  $(".tutorial-scroll")?.scrollTo?.(0, 0);
+});
+$("#tutorial-back")?.addEventListener("click", () => showScreen("home"));
+$("#tutorial-start")?.addEventListener("click", () => showScreen("character-screen"));
 $$('[data-language]').forEach((button) => button.addEventListener("click", () => setLanguage(button.dataset.language)));
 $$('[data-go-home]').forEach((button) => button.addEventListener("click", goHome));
 $("#facts-toggle").addEventListener("click", () => setFactsOpen(!$("#game-facts").classList.contains("is-open")));

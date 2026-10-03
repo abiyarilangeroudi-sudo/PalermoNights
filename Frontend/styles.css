@@ -169,6 +169,9 @@ html[lang="fa"] .home-copy h1 {
 .primary-button:disabled { opacity: 0.48; cursor: wait; transform: none; }
 .secondary-button { min-width: auto; color: var(--ink); background: rgba(9, 12, 10, 0.7); border-color: var(--line); }
 .secondary-button:hover { border-color: var(--gold); }
+.home-actions { display: grid; width: min(100%, 360px); gap: 9px; }
+.home-actions > button { width: 100%; }
+.tutorial-link { border-color: rgba(199, 169, 109, 0.5); }
 .home-footer {
   position: absolute;
   z-index: 2;
@@ -182,6 +185,78 @@ html[lang="fa"] .home-copy h1 {
   letter-spacing: 0.16em;
 }
 .home-footer i { width: 3px; height: 3px; border-radius: 50%; background: var(--gold); }
+
+.tutorial-screen {
+  height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 4%, rgba(199, 169, 109, 0.13), transparent 34%),
+    linear-gradient(180deg, #121712, #090c0a 38%);
+}
+.tutorial-nav {
+  position: absolute;
+  z-index: 5;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(9, 12, 10, 0.92);
+  backdrop-filter: blur(16px);
+}
+.tutorial-scroll {
+  height: 100svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 104px 18px 34px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) transparent;
+}
+.tutorial-content { width: min(100%, 760px); margin: 0 auto; }
+.tutorial-hero { padding: 18px 0 28px; border-bottom: 1px solid var(--line); }
+.tutorial-hero h1 {
+  margin: 0 0 16px;
+  font: 700 clamp(2.5rem, 11cqw, 4.8rem)/1 var(--font-display);
+  letter-spacing: -.035em;
+}
+html[lang="fa"] .tutorial-hero h1 { font-family: var(--font-fa); line-height: 1.3; }
+.tutorial-hero > p:last-child { margin: 0; color: var(--soft); font-size: .96rem; line-height: 1.9; }
+.tutorial-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 22px 0 4px;
+}
+.tutorial-summary div { padding: 13px 10px; border: 1px solid var(--line); background: rgba(255,255,255,.025); }
+.tutorial-summary b { display: block; margin-bottom: 5px; color: var(--gold); font: 700 1.35rem var(--font-display); }
+.tutorial-summary span { color: var(--soft); font-size: .66rem; line-height: 1.45; }
+.tutorial-section { padding: 27px 0; border-bottom: 1px solid var(--line); }
+.tutorial-section h2 { margin: 0 0 14px; color: var(--ink); font: 700 1.45rem/1.3 var(--font-display); }
+html[lang="fa"] .tutorial-section h2 { font-family: var(--font-fa); }
+.tutorial-section p, .tutorial-section li { color: #c5c8c1; font-size: .88rem; line-height: 1.85; }
+.tutorial-section p { margin: 0 0 12px; }
+.tutorial-section ul, .tutorial-section ol { margin: 8px 0 0; padding-inline-start: 22px; }
+.tutorial-section li + li { margin-top: 9px; }
+.tutorial-section strong { color: var(--ink); }
+.tutorial-role-grid { display: grid; gap: 8px; margin-top: 15px; }
+.tutorial-role {
+  padding: 14px;
+  border-inline-start: 3px solid var(--gold);
+  background: rgba(255,255,255,.035);
+}
+.tutorial-role b { display: block; margin-bottom: 6px; color: var(--gold-bright); font-size: .9rem; }
+.tutorial-role p { margin: 0; font-size: .8rem; }
+.tutorial-note { padding: 14px; border: 1px solid rgba(199,169,109,.35); background: rgba(199,169,109,.08); }
+.tutorial-actions {
+  display: grid;
+  grid-template-columns: minmax(0, .65fr) minmax(0, 1.35fr);
+  width: min(100%, 760px);
+  gap: 9px;
+  margin: 24px auto 0;
+}
+.tutorial-actions button { width: 100%; min-width: 0; }
 
 .character-screen { height: 100svh; min-height: 620px; background: radial-gradient(circle at 50% 5%, #202a23, #0b0e0c 52%); padding-bottom: 28px; }
 .selection-heading { width: min(860px, calc(100% - 44px)); margin: 20px auto 32px; text-align: center; }
@@ -602,6 +677,13 @@ html[dir="rtl"] .toast.is-visible { translate: 50% 0; }
   .eyebrow { margin-bottom: 8px; }
   .primary-button { min-width: 0; width: 100%; padding: 13px 16px; }
   .secondary-button { flex: 1; min-width: 0; }
+  .tutorial-nav { min-height: 62px; padding: 10px 14px; }
+  .tutorial-scroll { padding: 80px 16px 26px; }
+  .tutorial-hero { padding-top: 10px; }
+  .tutorial-hero h1 { font-size: clamp(2.2rem, 12cqw, 3.5rem); }
+  .tutorial-summary { gap: 6px; }
+  .tutorial-summary div { padding: 11px 8px; }
+  .tutorial-section { padding: 23px 0; }
   .choice-button { flex: 1 1 30%; min-width: 0; padding: 12px 7px; }
   .role-overlay { padding-bottom: 2px; }
   .role-chip { display: inline-block; width: fit-content; margin: 12px 0; }

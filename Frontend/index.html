@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b0d0c" />
     <title>Palermo Nights</title>
-    <link rel="stylesheet" href="/ui/styles.css?v=20261012-player-photos" />
+    <link rel="stylesheet" href="/ui/styles.css?v=20261014-tutorial" />
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
@@ -35,16 +35,47 @@
           <p id="home-lead" class="lead">
             حقیقت با سپیده‌دم نمی‌آید. باید آن را از میان نگاه‌ها، ادعاها و سکوت‌ها پیدا کنی.
           </p>
-          <button id="new-game" class="primary-button" type="button">
-            <span id="new-game-label">شروع بازی جدید</span>
-            <span aria-hidden="true">←</span>
-          </button>
+          <div class="home-actions">
+            <button id="new-game" class="primary-button" type="button">
+              <span id="new-game-label">شروع بازی جدید</span>
+              <span aria-hidden="true">←</span>
+            </button>
+            <button id="tutorial-open" class="secondary-button tutorial-link" type="button">
+              <span id="tutorial-open-label">آموزش و قوانین بازی</span>
+              <span aria-hidden="true">?</span>
+            </button>
+          </div>
           <div id="completed-reports" class="completed-reports"></div>
         </div>
 
         <footer class="home-footer">
           <span>ONE HUMAN</span><i></i><span>SIX AI AGENTS</span><i></i><span>ONE CITY</span>
         </footer>
+      </section>
+
+      <section id="tutorial-screen" class="screen tutorial-screen" aria-live="polite">
+        <header class="tutorial-nav">
+          <button class="brand minimal" data-go-home type="button">
+            <img class="brand-logo" src="/ui/Images/Logo-transparent.png?v=20261006" alt="" aria-hidden="true" />
+            <span>PALERMO NIGHTS</span>
+          </button>
+          <div class="language-picker" aria-label="Language">
+            <button type="button" data-language="en" class="is-selected">EN</button>
+            <button type="button" data-language="de">DE</button>
+            <button type="button" data-language="fa">FA</button>
+          </div>
+        </header>
+        <div class="tutorial-scroll">
+          <article id="tutorial-content" class="tutorial-content"></article>
+          <div class="tutorial-actions">
+            <button id="tutorial-back" class="secondary-button" type="button">
+              <span id="tutorial-back-label">Back</span><span aria-hidden="true">←</span>
+            </button>
+            <button id="tutorial-start" class="primary-button" type="button">
+              <span id="tutorial-start-label">Start a new game</span><span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
       </section>
 
       <section id="character-screen" class="screen character-screen" aria-live="polite">
@@ -115,6 +146,6 @@
     <div id="toast" class="toast" role="alert"></div>
     <script src="/ui/journal.js?v=20261008" defer></script>
     <script src="/ui/archive.js?v=20261008" defer></script>
-    <script src="/ui/app.js?v=20261013" defer></script>
+    <script src="/ui/app.js?v=20261014-tutorial" defer></script>
   </body>
 </html>
