@@ -6,6 +6,7 @@ import os
 import secrets
 from datetime import UTC, datetime
 from pathlib import Path
+from collections.abc import Mapping
 from typing import Any, Literal
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request
@@ -71,6 +72,38 @@ CHARACTER_NAMES = {
     7: "Elena Rossi",
 }
 
+AI_ENVIRONMENT_NAMES = (
+    "OPENAI_API_KEY",
+    "OPENAI_PLAYER_MODEL",
+    "OPENAI_ANALYST_MODEL",
+    "OPENAI_BASE_URL",
+    "OPENAI_REASONING_EFFORT",
+    "LLM_MIN_REQUEST_INTERVAL_SECONDS",
+    "LLM_MAX_OUTPUT_TOKENS",
+    "LLM_SPEAK_MAX_OUTPUT_TOKENS",
+    "LLM_REQUEST_TIMEOUT_SECONDS",
+    "LLM_DECISION_TIMEOUT_SECONDS",
+    "TYPESAFE_DECISION_TIMEOUT_SECONDS",
+    "LLM_ANALYST_MAX_OUTPUT_TOKENS",
+)
+
+
+def request_ai_environment(request: Request) -> Mapping[str, str] | None:
+    """Read AI configuration from Cloudflare bindings when they are present."""
+    bindings = request.scope.get("env")
+    if bindings is None:
+        return None
+
+    values = dict(os.environ)
+    for name in AI_ENVIRONMENT_NAMES:
+        if isinstance(bindings, Mapping):
+            value = bindings.get(name)
+        else:
+            value = getattr(bindings, name, None)
+        if value is not None:
+            values[name] = str(value)
+    return values
+
 
 def interactive_player_names(character_id: int) -> dict[str, str]:
     ordered_ids = [character_id, *(item for item in CHARACTER_NAMES if item != character_id)]
@@ -114,11 +147,17 @@ def create_game(request: CreateGameRequest) -> dict[str, Any]:
 
 
 @app.post("/games/ai", status_code=202)
-async def create_ai_game(request: CreateAIGameRequest) -> dict[str, Any]:
+async def create_ai_game(
+    request: CreateAIGameRequest, http_request: Request
+) -> dict[str, Any]:
     settings = None
     if request.mode == "live":
         try:
-            settings = AISettings.from_environment(env_file=".env")
+            runtime_environment = request_ai_environment(http_request)
+            settings = AISettings.from_environment(
+                env_file=".env" if runtime_environment is None else None,
+                environ=runtime_environment,
+            )
         except ConfigurationError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
     game = engine.create_game([PlayerType.AI] * 7)
@@ -147,13 +186,20 @@ async def create_ai_game(request: CreateAIGameRequest) -> dict[str, Any]:
 
 
 @app.post("/games/interactive", status_code=202)
-async def create_interactive_game(request: CreateInteractiveGameRequest) -> dict[str, Any]:
+async def create_interactive_game(
+    request: CreateInteractiveGameRequest, http_request: Request
+) -> dict[str, Any]:
     settings = None
     mode = "offline"
     ai_model = "deterministic-fallback"
     if request.ai_mode == "luna":
         try:
-            settings = AISettings.for_openai_players(player_count=6, env_file=".env")
+            runtime_environment = request_ai_environment(http_request)
+            settings = AISettings.for_openai_players(
+                player_count=6,
+                env_file=".env" if runtime_environment is None else None,
+                environ=runtime_environment,
+            )
             mode = "live"
             ai_model = settings.player_providers[0].model
         except ConfigurationError:
