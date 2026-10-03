@@ -40,3 +40,21 @@ def test_pool_rejects_insufficient_capacity():
         env.pop(f"HETZNER_API_KEY_{index}")
     with pytest.raises(ConfigurationError, match="seven"):
         AISettings.from_environment(environ=env)
+
+
+def test_openai_luna_pool_reuses_one_key_without_exposing_it():
+    settings = AISettings.for_openai_players(
+        player_count=6,
+        environ={
+            "OPENAI_API_KEY": "openai-secret",
+            "OPENAI_PLAYER_MODEL": "gpt-5.6-luna",
+            "OPENAI_BASE_URL": "https://api.example/v1",
+        },
+    )
+
+    assert len(settings.player_providers) == 6
+    assert {config.model for config in settings.player_providers} == {"gpt-5.6-luna"}
+    assert {config.provider for config in settings.player_providers} == {"openai"}
+    assert settings.max_output_tokens == 4096
+    assert settings.speak_max_output_tokens == 4096
+    assert "openai-secret" not in repr(settings)

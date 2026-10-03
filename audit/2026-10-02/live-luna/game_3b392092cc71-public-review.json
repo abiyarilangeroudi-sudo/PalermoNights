@@ -1,0 +1,612 @@
+{
+  "public-state": {
+    "game_id": "game_3b392092cc71",
+    "phase": "GAME_OVER",
+    "round": 2,
+    "alive_players": [
+      "P4",
+      "P5",
+      "P6",
+      "P7"
+    ],
+    "players": {
+      "P1": {
+        "alive": false,
+        "shunned": false,
+        "player_type": "HUMAN"
+      },
+      "P2": {
+        "alive": false,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P3": {
+        "alive": false,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P4": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P5": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P6": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P7": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "AI"
+      }
+    },
+    "role_claims": {
+      "P1": "CITIZEN",
+      "P2": "DETECTIVE",
+      "P3": "DOCTOR",
+      "P4": "CITIZEN",
+      "P5": "CITIZEN",
+      "P6": "CITIZEN",
+      "P7": "CITIZEN"
+    },
+    "discussion_order": [],
+    "shunned_player": null,
+    "last_night_result": {
+      "type": "PLAYER_KILLED",
+      "player": "P2",
+      "revealed_role": "DETECTIVE"
+    },
+    "revealed_roles": {
+      "P3": "DOCTOR",
+      "P1": "CITIZEN",
+      "P2": "DETECTIVE"
+    },
+    "night_action_blocks": [
+      {
+        "round": 1,
+        "player": "P4",
+        "reason": "SHUNNED_BY_VOTE"
+      }
+    ],
+    "winner": "MAFIA"
+  },
+  "events": {
+    "events": [
+      {
+        "players": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7"
+        ],
+        "event_id": "evt_000001",
+        "type": "GAME_CREATED",
+        "round": 1,
+        "phase": "NIGHT_1_MAFIA",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:00.235805+00:00"
+      },
+      {
+        "actor": "P1",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000004",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:20.062165+00:00"
+      },
+      {
+        "actor": "P2",
+        "claimed_role": "DETECTIVE",
+        "event_id": "evt_000005",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:22.486409+00:00"
+      },
+      {
+        "actor": "P3",
+        "claimed_role": "DOCTOR",
+        "event_id": "evt_000006",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:24.636261+00:00"
+      },
+      {
+        "actor": "P4",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000007",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:26.608765+00:00"
+      },
+      {
+        "actor": "P5",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000008",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:29.302500+00:00"
+      },
+      {
+        "actor": "P6",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000009",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:31.191323+00:00"
+      },
+      {
+        "actor": "P7",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000010",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:35.612037+00:00"
+      },
+      {
+        "order": [
+          "P7",
+          "P4",
+          "P3",
+          "P2",
+          "P5",
+          "P1",
+          "P6"
+        ],
+        "event_id": "evt_000011",
+        "type": "DISCUSSION_STARTED",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:35.614525+00:00"
+      },
+      {
+        "question_id": "q_1_1",
+        "actor": "P7",
+        "target": "P4",
+        "text": "Marco Conti برای رأی امروز بیشتر به رفتار گفت‌وگویی توجه می‌کنی یا به موضع‌گیری‌های نقش‌محور؟ فعلاً چه کسی برایت مشکوک‌تر است؟",
+        "discussion_turn": 1,
+        "event_id": "evt_000012",
+        "type": "PLAYER_ASKED",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:42.672390+00:00"
+      },
+      {
+        "actor": "P4",
+        "text": "برای رأی امروز بیشتر به رفتار گفت‌وگویی و سازگاری مواضع توجه می‌کنم، چون هنوز استعلام یا شواهد توانایی نداریم. فعلاً Vittorio Moretti کمی مشکوک‌تر است، چون ادعای کارآگاهی بدون نتیجهٔ قابل‌گزارش ارائه شده؛ اما این فقط یک سوءظن ضعیف است.",
+        "discussion_turn": 2,
+        "event_id": "evt_000013",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:45.880508+00:00"
+      },
+      {
+        "actor": "P3",
+        "text": "فعلاً نبودِ نتیجه از Vittorio Moretti مدرک قابل اتکایی علیه او نیست، چون هنوز شبی برای استعلام کامل نشده است. بهتر است امروز روی سازگاری مواضع و پاسخ‌ها تمرکز کنیم، نه صرفاً ادعاهای نقش.",
+        "discussion_turn": 3,
+        "event_id": "evt_000014",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:48.705484+00:00"
+      },
+      {
+        "actor": "P2",
+        "text": "نبود نتیجه از Vittorio Moretti در روز اول طبیعی است، چون هنوز شبی برای استعلام کامل نشده است. بهتر است امروز به سازگاری مواضع و پاسخ‌ها توجه کنیم، نه صرفاً ادعاهای نقش. سوءظن Marco Conti فعلاً مدرک مستقلی ندارد.",
+        "discussion_turn": 4,
+        "event_id": "evt_000015",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:51.419207+00:00"
+      },
+      {
+        "actor": "P5",
+        "text": "با توجه به نبودِ استعلام، فعلاً نمی‌توانم ادعای Vittorio Moretti را مشکوک بدانم. در عین حال، تمرکز Marco Conti روی ادعاهای نقش‌محور هم برای رأی کافی نیست. بهتر است سازگاری مواضع Vittorio Moretti و Marco Conti را در ادامه مقایسه کنیم.",
+        "discussion_turn": 5,
+        "event_id": "evt_000016",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:13:54.864437+00:00"
+      },
+      {
+        "actor": "P1",
+        "event_id": "evt_000017",
+        "type": "PLAYER_PASSED",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:18:41.254341+00:00"
+      },
+      {
+        "actor": "P6",
+        "text": "فعلاً شواهد مستقیمی علیه هیچ‌کس نداریم و نبودِ استعلام هم طبیعی است. برای رأی، سازگاری مواضع و واکنش‌ها را می‌سنجم؛ در حال حاضر سوءظن به Vittorio Moretti یا Marco Conti قطعی نیست.",
+        "discussion_turn": 7,
+        "event_id": "evt_000018",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:18:44.111211+00:00"
+      },
+      {
+        "question_ids": [
+          "q_1_1"
+        ],
+        "actor": "P4",
+        "targets": [
+          "P7"
+        ],
+        "text": "برای رأی امروز بیشتر به رفتار گفت‌وگویی، سازگاری مواضع و واکنش‌ها توجه می‌کنم، نه صرفاً ادعای نقش. در حال حاضر Vittorio Moretti کمی مشکوک‌تر است، اما این سوءظن ضعیف است و نبود نتیجهٔ استعلام مدرک محسوب نمی‌شود. اگر مواضع تازه‌ای ناسازگار باشد، ارزیابی‌ام را تغییر می‌دهم.",
+        "question_id": "q_1_1",
+        "target": "P7",
+        "event_id": "evt_000019",
+        "type": "PLAYER_ANSWERED",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:18:46.859644+00:00"
+      },
+      {
+        "actor": "P1",
+        "target": "P4",
+        "event_id": "evt_000020",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:29.517584+00:00"
+      },
+      {
+        "actor": "P2",
+        "target": "P4",
+        "event_id": "evt_000021",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:32.877154+00:00"
+      },
+      {
+        "actor": "P3",
+        "target": "P4",
+        "event_id": "evt_000022",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:35.573876+00:00"
+      },
+      {
+        "actor": "P4",
+        "target": "P2",
+        "event_id": "evt_000023",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:38.713855+00:00"
+      },
+      {
+        "actor": "P5",
+        "target": "P4",
+        "event_id": "evt_000024",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:41.177403+00:00"
+      },
+      {
+        "actor": "P6",
+        "target": "P4",
+        "event_id": "evt_000025",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:44.342786+00:00"
+      },
+      {
+        "actor": "P7",
+        "target": "P4",
+        "event_id": "evt_000026",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:48.440033+00:00"
+      },
+      {
+        "player": "P4",
+        "event_id": "evt_000048",
+        "type": "PLAYER_SHUNNED",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:48.440322+00:00"
+      },
+      {
+        "event_id": "evt_000049",
+        "type": "NIGHT_STARTED",
+        "round": 1,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:48.440362+00:00"
+      },
+      {
+        "result": "PLAYER_KILLED",
+        "player": "P3",
+        "revealed_role": "DOCTOR",
+        "event_id": "evt_000057",
+        "type": "NIGHT_RESULT",
+        "round": 1,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:57.859160+00:00"
+      },
+      {
+        "event_id": "evt_000058",
+        "type": "SHUN_CLEARED",
+        "round": 1,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:57.859166+00:00"
+      },
+      {
+        "order": [
+          "P2",
+          "P1",
+          "P6",
+          "P5",
+          "P7",
+          "P4"
+        ],
+        "event_id": "evt_000059",
+        "type": "DISCUSSION_STARTED",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:19:57.859292+00:00"
+      },
+      {
+        "actor": "P2",
+        "text": "استعلام شب اول من از Isabella Bellini نتیجهٔ «شهروند» داد. با توجه به کشته‌شدن Rosa Greco که پزشک بود، اکنون باید رفتار و مواضع بازیکنان باقی‌مانده را با دقت بیشتری مقایسه کنیم؛ دربارهٔ مظنون مشخص هنوز قطعیت ندارم.",
+        "discussion_turn": 1,
+        "event_id": "evt_000060",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:20:01.359514+00:00"
+      },
+      {
+        "actor": "P1",
+        "text": "متاسفم برای کارآگاه بی مصرف، حالا کار سخت است. بجای استعلام از فرد مشکوک که Marco conti باشد از یک شهروند ساده استعلام گرفته. حالا باید یک فرد را خودمان انتخاب کنیم که من هنوز  Marco conti مشکوک هستم.",
+        "discussion_turn": 2,
+        "event_id": "evt_000061",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:25:51.008536+00:00"
+      },
+      {
+        "actor": "P6",
+        "text": "نتیجهٔ اعلام‌شدهٔ Vittorio Moretti با وضعیت من سازگار است، هرچند برای دیگران هنوز ادعایی تأییدنشده محسوب می‌شود. انتقاد Matteo Ricci از انتخاب هدف، به‌تنهایی دلیل بدگمانی نیست؛ فعلاً علیه Marco Conti هم مدرک مستقیمی نداریم.",
+        "discussion_turn": 3,
+        "event_id": "evt_000062",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:25:54.684543+00:00"
+      },
+      {
+        "actor": "P5",
+        "text": "به‌نظر می‌رسد تمرکز مداوم Matteo Ricci روی Marco Conti بیشتر از یک استدلال تازه، تکرار سوءظن قبلی است. نتیجهٔ Vittorio Moretti با گفتهٔ Isabella Bellini سازگار است، اما هنوز ادعایی تأییدنشده محسوب می‌شود. بهتر است پیش از تصمیم، ناسازگاری مشخصی در مواضع پیدا کنیم.",
+        "discussion_turn": 4,
+        "event_id": "evt_000063",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:25:58.068820+00:00"
+      },
+      {
+        "actor": "P7",
+        "text": "تمرکز تکراری Matteo Ricci بر Marco Conti هنوز با دلیل تازه‌ای همراه نشده است. نتیجهٔ اعلام‌شدهٔ Vittorio Moretti با گفتهٔ Isabella Bellini سازگار است، اما همچنان برای دیگران تأییدنشده محسوب می‌شود. بهتر است به ناسازگاری مشخص در مواضع توجه کنیم، نه صرفاً تکرار سوءظنون.",
+        "discussion_turn": 5,
+        "event_id": "evt_000064",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:26:02.480796+00:00"
+      },
+      {
+        "actor": "P4",
+        "text": "نتیجهٔ اعلامی Vittorio Moretti با گفتهٔ Isabella Bellini سازگار است، اما هنوز برای دیگران تأیید مستقل ندارد. تمرکز مداوم Matteo Ricci بر من، بدون دلیل تازه، برای رأی کافی نیست. بهتر است امروز بر ناسازگاری مشخص در مواضع تمرکز کنیم.",
+        "discussion_turn": 6,
+        "event_id": "evt_000065",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:26:04.966598+00:00"
+      },
+      {
+        "actor": "P1",
+        "target": "P4",
+        "event_id": "evt_000066",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:06.106409+00:00"
+      },
+      {
+        "actor": "P2",
+        "target": "P1",
+        "event_id": "evt_000067",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:09.911899+00:00"
+      },
+      {
+        "actor": "P4",
+        "target": "P1",
+        "event_id": "evt_000068",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:13.091243+00:00"
+      },
+      {
+        "actor": "P5",
+        "target": "P1",
+        "event_id": "evt_000069",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:15.735722+00:00"
+      },
+      {
+        "actor": "P6",
+        "target": "P1",
+        "event_id": "evt_000070",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:19.569630+00:00"
+      },
+      {
+        "actor": "P7",
+        "target": "P1",
+        "event_id": "evt_000071",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:22.311014+00:00"
+      },
+      {
+        "player": "P1",
+        "reason": "DAY_VOTE",
+        "event_id": "evt_000090",
+        "type": "PLAYER_ELIMINATED",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:22.311189+00:00"
+      },
+      {
+        "player": "P1",
+        "role": "CITIZEN",
+        "event_id": "evt_000091",
+        "type": "ROLE_REVEALED",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:22.311197+00:00"
+      },
+      {
+        "player": "P1",
+        "text": "",
+        "event_id": "evt_000092",
+        "type": "WILL_REVEALED",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:22.311202+00:00"
+      },
+      {
+        "event_id": "evt_000093",
+        "type": "NIGHT_STARTED",
+        "round": 2,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:22.311220+00:00"
+      },
+      {
+        "result": "PLAYER_KILLED",
+        "player": "P2",
+        "revealed_role": "DETECTIVE",
+        "event_id": "evt_000099",
+        "type": "NIGHT_RESULT",
+        "round": 2,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:27.201904+00:00"
+      },
+      {
+        "winner": "MAFIA",
+        "alive_mafia": 2,
+        "alive_citizens": 2,
+        "event_id": "evt_000100",
+        "type": "GAME_OVER",
+        "round": 2,
+        "phase": "GAME_OVER",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:27:27.201951+00:00"
+      }
+    ]
+  },
+  "run-state": {
+    "game_id": "game_3b392092cc71",
+    "mode": "live",
+    "status": "COMPLETED",
+    "started_at": "2026-10-03T10:13:00.236102+00:00",
+    "finished_at": "2026-10-03T10:27:27.204445+00:00",
+    "current_step": 40,
+    "summary": {
+      "winner": "MAFIA",
+      "rounds": 2,
+      "actions": 40,
+      "fallback_actions": 0,
+      "recovered_rule_errors": 0
+    },
+    "error": null,
+    "human_player_id": "P1",
+    "character_id": 1,
+    "language": "fa",
+    "ai_model": "gpt-5.6-luna",
+    "fallback_actions": 0,
+    "agent_health": "HEALTHY"
+  }
+}

@@ -111,6 +111,20 @@ class HttpProvider:
                 if not isinstance(data, dict):
                     raise ProviderError("Provider returned a non-object response")
                 return data
+            except httpx.HTTPStatusError as exc:
+                last_error = exc
+                if attempt < 2 and exc.response.status_code in {429, 500, 502, 503, 504}:
+                    await asyncio.sleep(0.25 * (2**attempt))
+                    continue
+                try:
+                    error = exc.response.json().get("error", {})
+                    detail = str(error.get("message") or error.get("code") or "")[:400]
+                except (ValueError, AttributeError):
+                    detail = ""
+                suffix = f" (HTTP {exc.response.status_code})"
+                if detail:
+                    suffix += f": {detail}"
+                raise ProviderError(f"{self.provider_name} request failed{suffix}") from exc
             except (httpx.HTTPError, ValueError, ProviderError) as exc:
                 last_error = exc
                 if attempt < 2:
@@ -236,6 +250,12 @@ class OpenAIResponsesProvider(HttpProvider):
                 "store": False,
             },
         )
+        if data.get("status") == "incomplete":
+            reason = (data.get("incomplete_details") or {}).get("reason", "unknown")
+            usage = data.get("usage") or {}
+            raise ProviderError(
+                f"OpenAI response incomplete:{reason}:output_tokens={usage.get('output_tokens', 'unknown')}"
+            )
         text = data.get("output_text")
         if not text:
             chunks: list[str] = []

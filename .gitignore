@@ -9,3 +9,7 @@ dist/
 build/
 *.egg-info/
 .DS_Store
+.game-audits/
+audit/**/*.jsonl
+audit/**/*.jpg
+audit/**/*.png

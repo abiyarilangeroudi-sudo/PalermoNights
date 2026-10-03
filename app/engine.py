@@ -7,6 +7,7 @@ from typing import Any, Iterable
 
 from .domain import (
     Action,
+    CLAIMABLE_ROLES,
     Event,
     Faction,
     Game,
@@ -57,7 +58,9 @@ class GameEngine:
         roles = [Role(role) for role in (fixed_roles or ROLES)]
         if Counter(roles) != Counter(ROLES):
             raise RuleViolation("INVALID_ROLE_DISTRIBUTION")
-        rng = random.Random(seed)
+        # Explicit seeds are for in-process simulations/tests only; HTTP creation
+        # never accepts them. Real games use server-owned system randomness.
+        rng = random.Random(seed) if seed is not None else secrets.SystemRandom()
         if fixed_roles is None:
             rng.shuffle(roles)
 
@@ -74,7 +77,7 @@ class GameEngine:
         for player in players.values():
             player.trust = {pid: 50 for pid in players if pid != player.player_id}
 
-        game = Game(game_id=game_id, players=players, rng_seed=seed)
+        game = Game(game_id=game_id, players=players, rng_seed=seed if seed is not None else secrets.randbits(128))
         self._event(game, "GAME_CREATED", {"players": list(players)})
         self._event(
             game,
@@ -191,6 +194,15 @@ class GameEngine:
                 for event in game.events
                 if event.type == "ROLE_REVEALED"
             },
+            "night_action_blocks": [
+                {
+                    "round": event.round,
+                    "player": event.payload["player"],
+                    "reason": "SHUNNED_BY_VOTE",
+                }
+                for event in game.events
+                if event.type == "PLAYER_SHUNNED"
+            ],
             "winner": game.winner.value if game.winner else None,
         }
 
@@ -246,6 +258,8 @@ class GameEngine:
             claimed = Role(payload["claimed_role"])
         except (KeyError, ValueError) as exc:
             raise RuleViolation("INVALID_ROLE_CLAIM") from exc
+        if claimed not in CLAIMABLE_ROLES:
+            raise RuleViolation("INVALID_ROLE_CLAIM")
         player.role_claim = claimed
         self._event(
             game,
@@ -293,21 +307,25 @@ class GameEngine:
         pending = [q for q in game.questions if q.target == player.player_id and not q.answered]
         if not pending:
             raise RuleViolation("NO_PENDING_QUESTION")
-        question_id = payload.get("question_id")
-        question = next((q for q in pending if q.question_id == question_id), None)
-        if question is None:
-            raise RuleViolation("INVALID_QUESTION_ID")
         text = self._text(payload, "text")
-        question.answered = True
+        for question in pending:
+            question.answered = True
+        question_ids = [question.question_id for question in pending]
+        targets = list(dict.fromkeys(question.actor for question in pending))
+        event_payload: dict[str, Any] = {
+            "question_ids": question_ids,
+            "actor": player.player_id,
+            "targets": targets,
+            "text": text,
+        }
+        # Preserve the singular fields for existing clients when only one question exists.
+        if len(pending) == 1:
+            event_payload["question_id"] = pending[0].question_id
+            event_payload["target"] = pending[0].actor
         self._event(
             game,
             "PLAYER_ANSWERED",
-            {
-                "question_id": question.question_id,
-                "actor": player.player_id,
-                "target": question.actor,
-                "text": text,
-            },
+            event_payload,
         )
         if self._awaiting_answers(game) and all(q.answered for q in game.questions):
             game.phase = Phase.DAY_VOTING
@@ -423,6 +441,18 @@ class GameEngine:
 
         killed = None
         mafia_target = game.night_actions.get(killer.player_id) if killer else None
+        # Keep causal evidence internal; participants may read it only after game over.
+        self._event(game, "NIGHT_RESOLUTION", {
+            "attacker": killer.player_id if killer else None,
+            "attack_target": mafia_target,
+            "protected_target": protected,
+            "reason": (
+                "NO_ACTIVE_ATTACKER" if killer is None else
+                "ATTACKER_BLOCKED" if killer.shunned else
+                "NO_ATTACK" if mafia_target is None else
+                "PROTECTED" if mafia_target == protected else "KILLED"
+            ),
+        }, "ENGINE")
         if mafia_target and mafia_target != protected:
             killed = mafia_target
             # The public learns about a night kill only through NIGHT_RESULT.
@@ -457,6 +487,14 @@ class GameEngine:
             return
         game.round += 1
         self._start_discussion(game)
+
+    def completed_night_replay(self, game: Game) -> list[dict[str, Any]]:
+        if game.phase != Phase.GAME_OVER:
+            return []
+        return [
+            {"round": event.round, **event.payload}
+            for event in game.events if event.type == "NIGHT_RESOLUTION"
+        ]
 
     def _eliminate(
         self,

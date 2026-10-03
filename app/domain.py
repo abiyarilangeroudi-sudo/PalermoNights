@@ -14,6 +14,9 @@ class Role(StrEnum):
     CITIZEN = "CITIZEN"
 
 
+CLAIMABLE_ROLES = (Role.CITIZEN, Role.DOCTOR, Role.DETECTIVE)
+
+
 class Faction(StrEnum):
     MAFIA = "MAFIA"
     CITIZEN = "CITIZEN"

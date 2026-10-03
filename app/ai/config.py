@@ -28,8 +28,8 @@ class AISettings:
     analyst: ProviderConfig | None
     typesafe: ProviderConfig | None
     min_request_interval_seconds: float = 8.0
-    max_output_tokens: int = 180
-    speak_max_output_tokens: int = 512
+    max_output_tokens: int = 4096
+    speak_max_output_tokens: int = 4096
     request_timeout_seconds: float = 180.0
     decision_timeout_seconds: float = 45.0
     typesafe_decision_timeout_seconds: float = 15.0
@@ -138,14 +138,80 @@ class AISettings:
             min_request_interval_seconds=positive_float(
                 "LLM_MIN_REQUEST_INTERVAL_SECONDS", "8"
             ),
-            max_output_tokens=positive_int("LLM_MAX_OUTPUT_TOKENS", "180"),
-            speak_max_output_tokens=positive_int("LLM_SPEAK_MAX_OUTPUT_TOKENS", "512"),
+            max_output_tokens=positive_int("LLM_MAX_OUTPUT_TOKENS", "4096"),
+            speak_max_output_tokens=positive_int("LLM_SPEAK_MAX_OUTPUT_TOKENS", "4096"),
             request_timeout_seconds=positive_float("LLM_REQUEST_TIMEOUT_SECONDS", "180"),
             decision_timeout_seconds=positive_float("LLM_DECISION_TIMEOUT_SECONDS", "45"),
             typesafe_decision_timeout_seconds=positive_float(
                 "TYPESAFE_DECISION_TIMEOUT_SECONDS", "15"
             ),
             analyst_max_output_tokens=positive_int("LLM_ANALYST_MAX_OUTPUT_TOKENS", "700"),
+            openai_reasoning_effort=value("OPENAI_REASONING_EFFORT", "low") or "low",
+        )
+
+    @classmethod
+    def for_openai_players(
+        cls,
+        *,
+        player_count: int = 6,
+        env_file: str | Path | None = ".env",
+        environ: Mapping[str, str] | None = None,
+    ) -> "AISettings":
+        """Build a dedicated OpenAI player pool for an interactive match."""
+        if environ is None:
+            if env_file is not None:
+                load_dotenv(Path(env_file), override=False)
+            source: Mapping[str, str] = os.environ
+        else:
+            source = environ
+
+        def value(name: str, default: str | None = None) -> str | None:
+            raw = source.get(name, default)
+            return raw.strip() if isinstance(raw, str) else raw
+
+        def number(name: str, default: str) -> float:
+            try:
+                result = float(value(name, default) or default)
+            except ValueError as exc:
+                raise ConfigurationError(f"{name} must be a number") from exc
+            if result < 0:
+                raise ConfigurationError(f"{name} must be non-negative")
+            return result
+
+        def integer(name: str, default: str) -> int:
+            try:
+                result = int(value(name, default) or default)
+            except ValueError as exc:
+                raise ConfigurationError(f"{name} must be an integer") from exc
+            if result <= 0:
+                raise ConfigurationError(f"{name} must be positive")
+            return result
+
+        api_key = value("OPENAI_API_KEY")
+        if not api_key or api_key.startswith("replace-with"):
+            raise ConfigurationError("OPENAI_API_KEY is required for Luna players")
+        model = value("OPENAI_PLAYER_MODEL", "gpt-5.6-luna") or "gpt-5.6-luna"
+        config = ProviderConfig(
+            "openai",
+            model,
+            api_key,
+            value("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        )
+        return cls(
+            provider_mode="openai-luna",
+            player_providers=tuple(config for _ in range(player_count)),
+            fallback_providers=(),
+            analyst=None,
+            typesafe=None,
+            min_request_interval_seconds=number("LLM_MIN_REQUEST_INTERVAL_SECONDS", "0"),
+            max_output_tokens=integer("LLM_MAX_OUTPUT_TOKENS", "4096"),
+            speak_max_output_tokens=integer("LLM_SPEAK_MAX_OUTPUT_TOKENS", "4096"),
+            request_timeout_seconds=number("LLM_REQUEST_TIMEOUT_SECONDS", "180"),
+            decision_timeout_seconds=number("LLM_DECISION_TIMEOUT_SECONDS", "45"),
+            typesafe_decision_timeout_seconds=number(
+                "TYPESAFE_DECISION_TIMEOUT_SECONDS", "15"
+            ),
+            analyst_max_output_tokens=integer("LLM_ANALYST_MAX_OUTPUT_TOKENS", "700"),
             openai_reasoning_effort=value("OPENAI_REASONING_EFFORT", "low") or "low",
         )
 

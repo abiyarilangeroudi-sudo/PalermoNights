@@ -26,7 +26,9 @@ class RunnerEntry:
     player_id: str
     action: str
     source: str
+    failure: str | None = None
     recovered_from_error: str | None = None
+    corrections: tuple[str, ...] = ()
 
 
 @dataclass(slots=True)
@@ -38,7 +40,7 @@ class HeadlessGameRunner:
     on_entry: Callable[[RunnerEntry], None] | None = None
 
     async def run(self, *, max_steps: int = 300) -> Game:
-        for step in range(1, max_steps + 1):
+        for step in range(len(self.transcript) + 1, max_steps + 1):
             if self.game.phase == Phase.GAME_OVER:
                 return self.game
             player_id, actions = self._next_actor()
@@ -48,30 +50,28 @@ class HeadlessGameRunner:
             agent = self.agents.get(player_id)
             if agent is None:
                 raise RuntimeError(f"No AI agent registered for {player_id}")
-            observation = self._observation(player_id, actions)
+            observation = self.observation(player_id, actions)
             action_round = self.game.round
             action_phase = self.game.phase.value
             decision = await agent.decide(observation)
             recovered = None
             try:
-                self.engine.submit_action(
-                    self.game, player_id, decision.action, dict(decision.payload)
-                )
+                self.submit_decision(player_id, decision.action, dict(decision.payload), actions)
             except RuleViolation as exc:
                 recovered = exc.code
                 decision = agent.fallback_decision(observation)
-                self.engine.submit_action(
-                    self.game, player_id, decision.action, dict(decision.payload)
-                )
+                self.submit_decision(player_id, decision.action, dict(decision.payload), actions)
             entry = RunnerEntry(
-                    step=step,
-                    round=action_round,
-                    phase=action_phase,
-                    player_id=player_id,
-                    action=decision.action,
-                    source=decision.source,
-                    recovered_from_error=recovered,
-                )
+                step=step,
+                round=action_round,
+                phase=action_phase,
+                player_id=player_id,
+                action=decision.action,
+                source=decision.source,
+                failure=agent.last_failure,
+                recovered_from_error=recovered,
+                corrections=decision.corrections,
+            )
             self.transcript.append(entry)
             if self.on_entry:
                 self.on_entry(entry)
@@ -83,10 +83,51 @@ class HeadlessGameRunner:
         player_id, actions = self._next_actor()
         if self.game.players[player_id].player_type == PlayerType.HUMAN:
             raise HumanInputRequired(player_id)
-        observation = self._observation(player_id, actions)
+        observation = self.observation(player_id, actions)
         decision = await self.agents[player_id].decide(observation)
-        self.engine.submit_action(self.game, player_id, decision.action, dict(decision.payload))
+        self.submit_decision(player_id, decision.action, dict(decision.payload), actions)
         return decision
+
+    def submit_decision(
+        self,
+        player_id: str,
+        action: str,
+        payload: dict[str, Any],
+        required_actions: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Single action gateway shared by human and AI participants."""
+        legal = required_actions if required_actions is not None else self.required_actions(player_id)
+        if action not in legal:
+            raise RuleViolation("ACTION_NOT_AVAILABLE_IN_CURRENT_STATE")
+        return self.engine.submit_action(self.game, player_id, action, payload)
+
+    def submit_participant_decision(
+        self,
+        player_id: str,
+        action: str,
+        payload: dict[str, Any],
+        *,
+        source: str,
+        required_actions: list[str] | None = None,
+        failure: str | None = None,
+    ) -> dict[str, Any]:
+        """Submit and audit a decision through the shared participant gateway."""
+        action_round = self.game.round
+        action_phase = self.game.phase.value
+        result = self.submit_decision(player_id, action, payload, required_actions)
+        entry = RunnerEntry(
+            step=len(self.transcript) + 1,
+            round=action_round,
+            phase=action_phase,
+            player_id=player_id,
+            action=action,
+            source=source,
+            failure=failure,
+        )
+        self.transcript.append(entry)
+        if self.on_entry:
+            self.on_entry(entry)
+        return result
 
     def _next_actor(self) -> tuple[str, list[str]]:
         for player_id, player in self.game.players.items():
@@ -96,6 +137,10 @@ class HeadlessGameRunner:
             if actions:
                 return player_id, actions
         raise RuntimeError(f"No actor can advance phase {self.game.phase.value}")
+
+    def required_actions(self, player_id: str) -> list[str]:
+        """Return only actions that advance the current turn."""
+        return list(self._required_actions(player_id))
 
     def _required_actions(self, player_id: str) -> list[str]:
         actions = [
@@ -114,14 +159,17 @@ class HeadlessGameRunner:
             return speaking
         return actions
 
-    def _observation(self, player_id: str, actions: list[str]) -> Observation:
+    def observation(
+        self, player_id: str, actions: list[str] | None = None
+    ) -> Observation:
         # This is the information-filter boundary. No Player/Game object is ever
         # passed to an agent; it receives only the same views exposed by the API.
+        legal_actions = self.required_actions(player_id) if actions is None else actions
         return Observation(
             player_id=player_id,
             public_state=self.engine.public_state(self.game),
             private_state=self.engine.private_state(self.game, player_id),
-            available_actions=list(actions),
+            available_actions=list(legal_actions),
             events=self.engine.visible_events(self.game, player_id),
         )
 
@@ -134,7 +182,25 @@ class HeadlessGameRunner:
             "fallback_actions": sum(
                 entry.source.startswith("fallback") for entry in self.transcript
             ),
+            "fallback_actions_by_type": {
+                action: sum(
+                    entry.action == action and entry.source.startswith("fallback")
+                    for entry in self.transcript
+                )
+                for action in sorted({entry.action for entry in self.transcript})
+            },
+            "failures": [
+                {
+                    "step": entry.step,
+                    "player_id": entry.player_id,
+                    "action": entry.action,
+                    "failure": entry.failure,
+                }
+                for entry in self.transcript
+                if entry.failure
+            ],
             "recovered_rule_errors": sum(
                 entry.recovered_from_error is not None for entry in self.transcript
             ),
+            "repaired_model_actions": sum(bool(entry.corrections) for entry in self.transcript),
         }

@@ -13,7 +13,6 @@ def create_game():
         "/games",
         json={
             "player_types": ["HUMAN", "AI", "AI", "HUMAN", "AI", "AI", "HUMAN"],
-            "seed": 11,
         },
     )
     assert response.status_code == 201

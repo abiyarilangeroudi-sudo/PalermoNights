@@ -12,6 +12,7 @@ from app.ai.providers import (
     OpenAICompatibleProvider,
     OpenAIResponsesProvider,
     TypeSafeDecisionProvider,
+    ProviderError,
 )
 
 
@@ -119,6 +120,31 @@ async def test_openai_responses_adapter_uses_structured_outputs():
         system_prompt="system", user_prompt="user", schema=SCHEMA, max_output_tokens=20
     )
     assert result["action"] == "PASS"
+
+
+@pytest.mark.anyio
+async def test_openai_responses_reports_token_exhaustion() -> None:
+    async def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "status": "incomplete",
+                "incomplete_details": {"reason": "max_output_tokens"},
+                "usage": {"output_tokens": 180},
+                "output": [],
+            },
+        )
+
+    provider = OpenAIResponsesProvider(
+        ProviderConfig("openai", "gpt-test", "secret", "https://example.test/v1"),
+        timeout_seconds=1,
+        min_interval_seconds=0,
+        transport=httpx.MockTransport(handler),
+    )
+    with pytest.raises(ProviderError, match="max_output_tokens"):
+        await provider.generate_json(
+            system_prompt="system", user_prompt="user", schema=SCHEMA, max_output_tokens=180
+        )
 
 
 @pytest.mark.anyio

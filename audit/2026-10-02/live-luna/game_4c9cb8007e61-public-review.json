@@ -1,0 +1,846 @@
+{
+  "public-state": {
+    "game_id": "game_4c9cb8007e61",
+    "phase": "GAME_OVER",
+    "round": 3,
+    "alive_players": [
+      "P1",
+      "P2",
+      "P5",
+      "P6"
+    ],
+    "players": {
+      "P1": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "HUMAN"
+      },
+      "P2": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P3": {
+        "alive": false,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P4": {
+        "alive": false,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P5": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P6": {
+        "alive": true,
+        "shunned": false,
+        "player_type": "AI"
+      },
+      "P7": {
+        "alive": false,
+        "shunned": false,
+        "player_type": "AI"
+      }
+    },
+    "role_claims": {
+      "P1": "CITIZEN",
+      "P2": "CITIZEN",
+      "P3": "CITIZEN",
+      "P4": "CITIZEN",
+      "P5": "CITIZEN",
+      "P6": "CITIZEN",
+      "P7": "DETECTIVE"
+    },
+    "discussion_order": [],
+    "shunned_player": null,
+    "last_night_result": {
+      "type": "PLAYER_KILLED",
+      "player": "P7",
+      "revealed_role": "DETECTIVE"
+    },
+    "revealed_roles": {
+      "P3": "MAFIA_DEPUTY",
+      "P7": "DETECTIVE",
+      "P4": "MAFIA_BOSS"
+    },
+    "night_action_blocks": [
+      {
+        "round": 1,
+        "player": "P3",
+        "reason": "SHUNNED_BY_VOTE"
+      }
+    ],
+    "winner": "CITIZEN"
+  },
+  "events": {
+    "events": [
+      {
+        "players": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7"
+        ],
+        "event_id": "evt_000001",
+        "type": "GAME_CREATED",
+        "round": 1,
+        "phase": "NIGHT_1_MAFIA",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:39:51.326038+00:00"
+      },
+      {
+        "actor": "P1",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000004",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:28.245534+00:00"
+      },
+      {
+        "actor": "P2",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000005",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:30.258351+00:00"
+      },
+      {
+        "actor": "P3",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000006",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:32.202133+00:00"
+      },
+      {
+        "actor": "P4",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000007",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:34.670454+00:00"
+      },
+      {
+        "actor": "P5",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000008",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:36.315990+00:00"
+      },
+      {
+        "actor": "P6",
+        "claimed_role": "CITIZEN",
+        "event_id": "evt_000009",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:38.349098+00:00"
+      },
+      {
+        "actor": "P7",
+        "claimed_role": "DETECTIVE",
+        "event_id": "evt_000010",
+        "type": "ROLE_CLAIMED",
+        "round": 1,
+        "phase": "ROLE_CLAIM",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:40.186680+00:00"
+      },
+      {
+        "order": [
+          "P7",
+          "P5",
+          "P3",
+          "P4",
+          "P1",
+          "P2",
+          "P6"
+        ],
+        "event_id": "evt_000011",
+        "type": "DISCUSSION_STARTED",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:40.189275+00:00"
+      },
+      {
+        "actor": "P7",
+        "text": "هنوز هیچ استعلام شبانه‌ای انجام نشده و برای اتهام قطعی شواهدی نداریم. رأی امروز باید بر رفتار، ناسازگاری اظهارات و الگوی همکاری در بحث استوار باشد. ادعاهای نقش به‌تنهایی مدرک کافی نیستند.",
+        "discussion_turn": 1,
+        "event_id": "evt_000012",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:50.144838+00:00"
+      },
+      {
+        "actor": "P5",
+        "text": "فعلاً هیچ شواهد مشخصی برای اتهام قطعی وجود ندارد. بهتر است رأی‌گیری بر ناسازگاری‌های رفتاری و الگوی همکاری در بحث متمرکز باشد، نه صرفاً ادعای نقش.",
+        "discussion_turn": 2,
+        "event_id": "evt_000013",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:52.926138+00:00"
+      },
+      {
+        "actor": "P3",
+        "text": "من هم فعلاً مدرک قطعی برای اتهام نمی‌بینم. بهتر است رفتار و الگوی رأی‌دهی Elena Rossi و Luca Romano را در ادامه با دقت مقایسه کنیم، بدون اینکه ادعای نقش را به‌تنهایی نشانهٔ گناه بدانیم.",
+        "discussion_turn": 3,
+        "event_id": "evt_000014",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:56.439192+00:00"
+      },
+      {
+        "actor": "P4",
+        "text": "در روز اول هنوز شواهد مستقلی برای اتهام قطعی وجود ندارد. بهتر است همه معیار رأی خود را روشن کنند و ناسازگاری‌های رفتاری را بسنجیم. ادعای نقش Elena Rossi نیز به‌تنهایی نباید مبنای اعتماد یا اتهام باشد.",
+        "discussion_turn": 4,
+        "event_id": "evt_000015",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:40:59.561128+00:00"
+      },
+      {
+        "question_id": "q_1_1",
+        "actor": "P1",
+        "target": "P3",
+        "text": "چرا فقط باید الگوی رأی‌دهی Elena Rossi و Luca Romano بررسی شود، هنوز چیزی مشخص نیست و بررسی الگوی رأی‌دهی باید برای همه یکسان باشد، اما چرا تو فقط این دو فرد را خطاب کردی؟",
+        "discussion_turn": 5,
+        "event_id": "evt_000016",
+        "type": "PLAYER_ASKED",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:44:01.693785+00:00"
+      },
+      {
+        "actor": "P2",
+        "text": "فعلاً شواهد مشخصی برای اتهام نداریم. معیار رأی‌گیری باید برای همه یکسان باشد و بر ناسازگاری رفتاری و الگوی همکاری در ادامه تمرکز کند. ادعاهای نقش به‌تنهایی کافی نیستند.",
+        "discussion_turn": 6,
+        "event_id": "evt_000017",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:44:04.177085+00:00"
+      },
+      {
+        "actor": "P6",
+        "text": "در حال حاضر شواهد مشخصی علیه فرد خاصی نداریم. معیار رأی‌گیری باید برای همه یکسان باشد، نه فقط Rosa Greco یا Luca Romano. بهتر است هرکس مبنای رأی خود را روشن کند.",
+        "discussion_turn": 7,
+        "event_id": "evt_000018",
+        "type": "PLAYER_SPOKE",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:44:06.430294+00:00"
+      },
+      {
+        "question_ids": [
+          "q_1_1"
+        ],
+        "actor": "P3",
+        "targets": [
+          "P1"
+        ],
+        "text": "Matteo Ricci حق با توست؛ انتخاب Elena Rossi و Luca Romano فقط برای شروع بحث بود، نه اتهام یا اولویت قطعی. از اینجا به بعد رفتار و الگوی رأی‌دهی همه را با یک معیار یکسان مقایسه می‌کنم.",
+        "question_id": "q_1_1",
+        "target": "P1",
+        "event_id": "evt_000019",
+        "type": "PLAYER_ANSWERED",
+        "round": 1,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:44:09.361204+00:00"
+      },
+      {
+        "actor": "P1",
+        "target": "P3",
+        "event_id": "evt_000020",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:30.743389+00:00"
+      },
+      {
+        "actor": "P2",
+        "target": "P3",
+        "event_id": "evt_000021",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:34.042642+00:00"
+      },
+      {
+        "actor": "P3",
+        "target": "P1",
+        "event_id": "evt_000022",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:36.779188+00:00"
+      },
+      {
+        "actor": "P4",
+        "target": "P1",
+        "event_id": "evt_000023",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:40.228535+00:00"
+      },
+      {
+        "actor": "P5",
+        "target": "P3",
+        "event_id": "evt_000024",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:43.111191+00:00"
+      },
+      {
+        "actor": "P6",
+        "target": "P3",
+        "event_id": "evt_000025",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:46.168227+00:00"
+      },
+      {
+        "actor": "P7",
+        "target": "P3",
+        "event_id": "evt_000026",
+        "type": "VOTE_CAST",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:50.162666+00:00"
+      },
+      {
+        "player": "P3",
+        "event_id": "evt_000048",
+        "type": "PLAYER_SHUNNED",
+        "round": 1,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:50.162893+00:00"
+      },
+      {
+        "event_id": "evt_000049",
+        "type": "NIGHT_STARTED",
+        "round": 1,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:45:50.162943+00:00"
+      },
+      {
+        "result": "NO_DEATH",
+        "event_id": "evt_000055",
+        "type": "NIGHT_RESULT",
+        "round": 1,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:46:08.901910+00:00"
+      },
+      {
+        "event_id": "evt_000056",
+        "type": "SHUN_CLEARED",
+        "round": 1,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:46:08.901917+00:00"
+      },
+      {
+        "order": [
+          "P3",
+          "P2",
+          "P4",
+          "P5",
+          "P1",
+          "P7",
+          "P6"
+        ],
+        "event_id": "evt_000057",
+        "type": "DISCUSSION_STARTED",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:46:08.901978+00:00"
+      },
+      {
+        "question_id": "q_2_1",
+        "actor": "P3",
+        "target": "P7",
+        "text": "Elena Rossi، اکنون که شب اول کامل شده، آیا استعلامی انجام دادی؟ اگر بله، نتیجه و هدف استعلامت را روشن کن.",
+        "discussion_turn": 1,
+        "event_id": "evt_000058",
+        "type": "PLAYER_ASKED",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:46:11.973753+00:00"
+      },
+      {
+        "actor": "P2",
+        "text": "فعلاً مهم‌ترین دادهٔ جدید، گزارش احتمالی استعلام شب اول توسط Elena Rossi است؛ آن را مدرک قطعی ندانیم و با رفتار و رأی‌های دور اول تطبیق دهیم. نبود مرگ شبانه به‌تنهایی دربارهٔ نقش هیچ‌کس نتیجه‌ای نمی‌دهد.",
+        "discussion_turn": 2,
+        "event_id": "evt_000059",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:46:15.071130+00:00"
+      },
+      {
+        "actor": "P4",
+        "text": "گزارش استعلام Elena Rossi باید با جزئیات هدف و نتیجه ارائه شود، اما هنوز نباید آن را قطعی دانست. رأی‌های Matteo Ricci و Vittorio Moretti در دور اول نیز باید کنار رفتارهای امروز بررسی شوند. فعلاً از نتیجه‌گیری شتاب‌زده دربارهٔ هر فرد پرهیز کنیم.",
+        "discussion_turn": 3,
+        "event_id": "evt_000060",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:46:18.858617+00:00"
+      },
+      {
+        "actor": "P5",
+        "text": "گزارش استعلام Elena Rossi می‌تواند دادهٔ تازه‌ای باشد، اما فعلاً فقط یک ادعای تأییدنشده است. بهتر است هدف، نتیجه و مبنای انتخاب هدف روشن شود و بعد آن را کنار الگوی رأی‌های دور اول بررسی کنیم.",
+        "discussion_turn": 4,
+        "event_id": "evt_000061",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:46:22.023611+00:00"
+      },
+      {
+        "question_id": "q_2_2",
+        "actor": "P1",
+        "target": "P4",
+        "text": "در دور اول همه به Rosa Greco رای دادیم اما فقط Marco Conti و Rosa Greco به من رای دادند. آیا می توانی توضیح دهی دلیل آن چیست و چرا به من رای دادی؟ رفتار شما را زیر نظر دارم تا شواهد کافی بدست بیاورم.",
+        "discussion_turn": 5,
+        "event_id": "evt_000062",
+        "type": "PLAYER_ASKED",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:51:25.082096+00:00"
+      },
+      {
+        "actor": "P7",
+        "text": "بله، شب اول Vittorio Moretti را استعلام کردم. نتیجه «شهروند» بود؛ این نتیجه در رویداد evt_000053 ثبت شده است. این داده او را از مظنونیت من خارج می‌کند، اما به‌تنهایی نقش دیگری را اثبات نمی‌کند.",
+        "discussion_turn": 6,
+        "event_id": "evt_000063",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:51:28.337045+00:00"
+      },
+      {
+        "actor": "P6",
+        "text": "گزارش Elena Rossi دربارهٔ استعلام Vittorio Moretti با زمان‌بندی بازی سازگار است، اما هنوز ادعایی تأییدنشده محسوب می‌شود. بهتر است آن را کنار رفتار و رأی‌های دور اول بسنجیم و فعلاً از نتیجه‌گیری قطعی پرهیز کنیم.",
+        "discussion_turn": 7,
+        "event_id": "evt_000064",
+        "type": "PLAYER_SPOKE",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:51:31.302814+00:00"
+      },
+      {
+        "question_ids": [
+          "q_2_2"
+        ],
+        "actor": "P4",
+        "targets": [
+          "P1"
+        ],
+        "text": "Matteo Ricci، رأی من بر اساس برداشت احتیاطی از رفتار و جهت بحثت بود، نه یک مدرک قطعی. در روز اول شواهد مستقل نداشتیم و حالا باید همان معیار را برای همه، همراه با داده‌های جدید، به‌کار ببریم.",
+        "question_id": "q_2_2",
+        "target": "P1",
+        "event_id": "evt_000065",
+        "type": "PLAYER_ANSWERED",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:51:34.874671+00:00"
+      },
+      {
+        "question_ids": [
+          "q_2_1"
+        ],
+        "actor": "P7",
+        "targets": [
+          "P3"
+        ],
+        "text": "بله، شب اول Vittorio Moretti را استعلام کردم و نتیجه «شهروند» بود. این استعلام پس از پایان شب اول انجام شد و نتیجه‌اش در رویداد evt_000053 ثبت شده است.",
+        "question_id": "q_2_1",
+        "target": "P3",
+        "event_id": "evt_000066",
+        "type": "PLAYER_ANSWERED",
+        "round": 2,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:51:37.106180+00:00"
+      },
+      {
+        "actor": "P1",
+        "target": "P3",
+        "event_id": "evt_000067",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:52:40.629457+00:00"
+      },
+      {
+        "actor": "P2",
+        "target": "P3",
+        "event_id": "evt_000068",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:52:43.423062+00:00"
+      },
+      {
+        "actor": "P3",
+        "target": "P1",
+        "event_id": "evt_000069",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:52:46.271287+00:00"
+      },
+      {
+        "actor": "P4",
+        "target": "P1",
+        "event_id": "evt_000070",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:52:50.049244+00:00"
+      },
+      {
+        "actor": "P5",
+        "target": "P1",
+        "event_id": "evt_000071",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:52:54.171148+00:00"
+      },
+      {
+        "actor": "P6",
+        "target": "P3",
+        "event_id": "evt_000072",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:52:59.162440+00:00"
+      },
+      {
+        "actor": "P7",
+        "target": "P3",
+        "event_id": "evt_000073",
+        "type": "VOTE_CAST",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:03.412594+00:00"
+      },
+      {
+        "player": "P3",
+        "reason": "DAY_VOTE",
+        "event_id": "evt_000095",
+        "type": "PLAYER_ELIMINATED",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:03.412882+00:00"
+      },
+      {
+        "player": "P3",
+        "role": "MAFIA_DEPUTY",
+        "event_id": "evt_000096",
+        "type": "ROLE_REVEALED",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:03.412892+00:00"
+      },
+      {
+        "player": "P3",
+        "text": "",
+        "event_id": "evt_000097",
+        "type": "WILL_REVEALED",
+        "round": 2,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:03.412900+00:00"
+      },
+      {
+        "event_id": "evt_000098",
+        "type": "NIGHT_STARTED",
+        "round": 2,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:03.412926+00:00"
+      },
+      {
+        "result": "PLAYER_KILLED",
+        "player": "P7",
+        "revealed_role": "DETECTIVE",
+        "event_id": "evt_000106",
+        "type": "NIGHT_RESULT",
+        "round": 2,
+        "phase": "NIGHT_ACTION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:21.916326+00:00"
+      },
+      {
+        "order": [
+          "P5",
+          "P2",
+          "P1",
+          "P6",
+          "P4"
+        ],
+        "event_id": "evt_000107",
+        "type": "DISCUSSION_STARTED",
+        "round": 3,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:21.916483+00:00"
+      },
+      {
+        "actor": "P5",
+        "text": "آشکار شدن نقش مافیای Rosa Greco دادهٔ قطعی ماست، اما هم‌دستی از روی رأی‌ها هنوز اثبات نمی‌شود. رأی‌های Marco Conti و Rosa Greco علیه Matteo Ricci در دور دوم هم‌جهت بود؛ با این حال باید رفتار Vittorio Moretti و Isabella Bellini را نیز بدون نتیجه‌گیری شتاب‌زده مقایسه کنیم. کشته‌شدن کارآگاه در شب دوم فقط نشان می‌دهد مافیا او را هدف گرفته، نه اینکه به‌تنهایی فرد خاصی را معرفی کند.",
+        "discussion_turn": 1,
+        "event_id": "evt_000108",
+        "type": "PLAYER_SPOKE",
+        "round": 3,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:26.065301+00:00"
+      },
+      {
+        "question_id": "q_3_1",
+        "actor": "P2",
+        "target": "P4",
+        "text": "Marco Conti، چرا در دور دوم به Matteo Ricci رأی دادی، در حالی که Rosa Greco نیز همان هدف را انتخاب کرده بود؟ آیا امروز دلیل مستقل و مشخصی برای آن رأی داری؟",
+        "discussion_turn": 2,
+        "event_id": "evt_000109",
+        "type": "PLAYER_ASKED",
+        "round": 3,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:53:29.782499+00:00"
+      },
+      {
+        "question_id": "q_3_2",
+        "actor": "P1",
+        "target": "P4",
+        "text": "با رای درست شهروندان به Rosa Greco معاون مافیا از بازی حذف شد. تنها شخصی که در رای گیری با او علیه من هم مسیر بود Marco Conti بود، آیا توضیحی در این باره داری؟",
+        "discussion_turn": 3,
+        "event_id": "evt_000110",
+        "type": "PLAYER_ASKED",
+        "round": 3,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:56:38.051127+00:00"
+      },
+      {
+        "actor": "P6",
+        "text": "هم‌جهتی رأی دور دوم Marco Conti با Rosa Greco علیه Matteo Ricci به‌تنهایی اثبات‌کننده نیست، اما فعلاً مهم‌ترین نکتهٔ رفتاری علیه اوست. توضیح مشخص و مستقل Marco Conti باید با این سابقه سنجیده شود.",
+        "discussion_turn": 4,
+        "event_id": "evt_000111",
+        "type": "PLAYER_SPOKE",
+        "round": 3,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:56:41.446979+00:00"
+      },
+      {
+        "actor": "P4",
+        "text": "Vittorio Moretti، آن رأی بر پایه برداشت من از رفتار و جهت بحث Matteo Ricci بود، نه صرفاً هم‌جهتی با Rosa Greco. Matteo Ricci، هم‌مسیر شدن رأی من و Rosa Greco اکنون نکته‌ای قابل بررسی است، اما در آن زمان برای من دلیل مستقلی علیه تو وجود داشت. با این حال می‌پذیرم که آشکار شدن نقش Rosa Greco این تصمیم را مشکوک‌تر کرده است.",
+        "discussion_turn": 5,
+        "event_id": "evt_000112",
+        "type": "PLAYER_SPOKE",
+        "round": 3,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:56:46.102481+00:00"
+      },
+      {
+        "question_ids": [
+          "q_3_1",
+          "q_3_2"
+        ],
+        "actor": "P4",
+        "targets": [
+          "P2",
+          "P1"
+        ],
+        "text": "Vittorio Moretti، رأی دور دومم بر پایه برداشت مستقل از جهت بحث و رفتار Matteo Ricci بود، نه صرفاً هم‌هدف‌شدن با Rosa Greco؛ بااین‌حال اکنون می‌پذیرم که این رأی مشکوک به نظر می‌رسد. Matteo Ricci، هم‌جهتی رأی من با Rosa Greco علیه تو پس از افشای نقش او یک قرینه جدی علیه من است، اما در زمان رأی مدرک قطعی نداشتم و مسئولیت آن تصمیم را می‌پذیرم.",
+        "event_id": "evt_000113",
+        "type": "PLAYER_ANSWERED",
+        "round": 3,
+        "phase": "DAY_DISCUSSION",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:56:52.951986+00:00"
+      },
+      {
+        "actor": "P1",
+        "target": "P4",
+        "event_id": "evt_000114",
+        "type": "VOTE_CAST",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:57:50.333993+00:00"
+      },
+      {
+        "actor": "P2",
+        "target": "P4",
+        "event_id": "evt_000115",
+        "type": "VOTE_CAST",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:57:53.923715+00:00"
+      },
+      {
+        "actor": "P4",
+        "target": "P1",
+        "event_id": "evt_000116",
+        "type": "VOTE_CAST",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:57:57.352381+00:00"
+      },
+      {
+        "actor": "P5",
+        "target": "P4",
+        "event_id": "evt_000117",
+        "type": "VOTE_CAST",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:58:00.228030+00:00"
+      },
+      {
+        "actor": "P6",
+        "target": "P4",
+        "event_id": "evt_000118",
+        "type": "VOTE_CAST",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:58:03.056944+00:00"
+      },
+      {
+        "player": "P4",
+        "reason": "DAY_VOTE",
+        "event_id": "evt_000129",
+        "type": "PLAYER_ELIMINATED",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:58:03.057255+00:00"
+      },
+      {
+        "player": "P4",
+        "role": "MAFIA_BOSS",
+        "event_id": "evt_000130",
+        "type": "ROLE_REVEALED",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:58:03.057267+00:00"
+      },
+      {
+        "player": "P4",
+        "text": "",
+        "event_id": "evt_000131",
+        "type": "WILL_REVEALED",
+        "round": 3,
+        "phase": "DAY_VOTING",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:58:03.057272+00:00"
+      },
+      {
+        "winner": "CITIZEN",
+        "alive_mafia": 0,
+        "alive_citizens": 4,
+        "event_id": "evt_000132",
+        "type": "GAME_OVER",
+        "round": 3,
+        "phase": "GAME_OVER",
+        "visibility": "PUBLIC",
+        "created_at": "2026-10-03T10:58:03.057291+00:00"
+      }
+    ]
+  },
+  "run-state": {
+    "game_id": "game_4c9cb8007e61",
+    "mode": "live",
+    "status": "COMPLETED",
+    "started_at": "2026-10-03T10:39:51.326827+00:00",
+    "finished_at": "2026-10-03T10:58:03.057778+00:00",
+    "current_step": 56,
+    "summary": {
+      "winner": "CITIZEN",
+      "rounds": 3,
+      "actions": 56,
+      "fallback_actions": 0,
+      "recovered_rule_errors": 0
+    },
+    "error": null,
+    "human_player_id": "P1",
+    "character_id": 1,
+    "language": "fa",
+    "ai_model": "gpt-5.6-luna",
+    "fallback_actions": 0,
+    "agent_health": "HEALTHY"
+  }
+}

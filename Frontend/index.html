@@ -1,104 +1,120 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#101412" />
+    <meta name="theme-color" content="#0b0d0c" />
     <title>Palermo Nights</title>
-    <link rel="stylesheet" href="/ui/styles.css" />
+    <link rel="stylesheet" href="/ui/styles.css?v=20261012-player-photos" />
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
-    <main class="app-shell">
-      <section id="lobby" class="lobby">
-        <div class="brand-mark">PN</div>
-        <p class="eyebrow">یک شهر، هفت چهره، دو دروغ‌گو</p>
-        <h1>شب‌های پالرمو</h1>
-        <p class="lead">
-          یک بازی استنتاج اجتماعی میان Agentهای مستقل؛ هر تصمیم از فیلتر اطلاعات و موتور قوانین عبور می‌کند.
-        </p>
-
-        <form id="create-form" class="setup-card">
-          <label>
-            حالت اجرا
-            <select id="mode">
-              <option value="offline">شبیه‌سازی سریع</option>
-              <option value="live">مدل‌های واقعی AI</option>
-            </select>
-          </label>
-          <label>
-            Seed بازی
-            <input id="seed" type="number" value="42" min="0" />
-          </label>
-          <label id="budget-field" class="is-hidden">
-            تصمیم واقعی برای هر Agent
-            <input id="budget" type="number" value="1" min="0" max="100" />
-            <small>صفر یعنی اجرای کاملاً remote و بدون محدودیت.</small>
-          </label>
-          <button id="start-button" type="submit">
-            <span>آغاز بازی</span>
-            <span aria-hidden="true">←</span>
-          </button>
-          <p id="form-error" class="error" role="alert"></p>
-        </form>
-      </section>
-
-      <section id="game" class="game is-hidden" aria-live="polite">
-        <header class="topbar">
-          <div>
-            <p class="eyebrow">Palermo Nights</p>
-            <h2 id="phase-title">در حال آماده‌سازی</h2>
-          </div>
-          <div class="topbar-stats">
-            <span id="round-badge" class="badge">روز ۱</span>
-            <span id="run-badge" class="badge accent">در صف</span>
-            <button id="new-game" class="icon-button" title="بازی جدید">↻</button>
+    <main id="app" class="app-shell">
+      <section id="home" class="screen home-screen is-active">
+        <img
+          class="screen-backdrop"
+          src="/ui/Images/Silhouettes_having_secret_conver.jpeg"
+          alt=""
+        />
+        <div class="cinema-shade"></div>
+        <header class="home-nav">
+          <a class="brand" href="/ui/" aria-label="Palermo Nights">
+            <img class="brand-logo" src="/ui/Images/Logo-transparent.png?v=20261006" alt="" aria-hidden="true" />
+            <span>PALERMO NIGHTS</span>
+          </a>
+          <div class="language-picker" aria-label="Language">
+            <button type="button" data-language="en" class="is-selected">EN</button>
+            <button type="button" data-language="de">DE</button>
+            <button type="button" data-language="fa">FA</button>
           </div>
         </header>
 
-        <div class="game-grid">
-          <section id="scene" class="scene-panel">
-            <img id="scene-image" src="/ui/Images/Silhouettes_having_secret_conver.jpeg" alt="صحنه بازی" />
-            <div class="scene-overlay"></div>
-            <div class="scene-copy">
-              <p id="scene-kicker">شب اول</p>
-              <h3 id="scene-heading">شهر هنوز از رازها خبر ندارد.</h3>
-              <p id="scene-detail">Agentها در حال دریافت نقش و آماده‌کردن ادعاهای خود هستند.</p>
-            </div>
-          </section>
-
-          <aside class="activity-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">دفتر وقایع</p>
-                <h3>رویدادهای عمومی</h3>
-              </div>
-              <span id="connection-dot" class="connection-dot" title="اتصال SSE"></span>
-            </div>
-            <ol id="timeline" class="timeline"></ol>
-          </aside>
+        <div class="home-copy">
+          <p id="home-kicker" class="eyebrow">یک شهر · هفت چهره · دو دروغ‌گو</p>
+          <h1 id="home-title">شب‌های<br />پالرمو</h1>
+          <p id="home-lead" class="lead">
+            حقیقت با سپیده‌دم نمی‌آید. باید آن را از میان نگاه‌ها، ادعاها و سکوت‌ها پیدا کنی.
+          </p>
+          <button id="new-game" class="primary-button" type="button">
+            <span id="new-game-label">شروع بازی جدید</span>
+            <span aria-hidden="true">←</span>
+          </button>
+          <div id="completed-reports" class="completed-reports"></div>
         </div>
 
-        <section class="players-section">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">میدان شهر</p>
-              <h3>بازیکنان</h3>
-            </div>
-            <p id="alive-count">۷ بازیکن زنده</p>
-          </div>
-          <div id="players" class="players-grid"></div>
-        </section>
+        <footer class="home-footer">
+          <span>ONE HUMAN</span><i></i><span>SIX AI AGENTS</span><i></i><span>ONE CITY</span>
+        </footer>
+      </section>
 
-        <footer class="game-footer">
-          <div>
-            <span>Game ID</span>
-            <code id="game-id">—</code>
+      <section id="character-screen" class="screen character-screen" aria-live="polite">
+        <header class="story-header">
+          <button class="brand minimal" data-go-home type="button">
+            <img class="brand-logo" src="/ui/Images/Logo-transparent.png?v=20261006" alt="" aria-hidden="true" /><span>PALERMO NIGHTS</span>
+          </button>
+          <div class="step-counter"><span>01</span><b>/</b><span>12</span></div>
+        </header>
+        <div class="selection-heading">
+          <p id="character-kicker" class="eyebrow">اسلاید اول</p>
+          <h2 id="character-title">چهره‌ات را انتخاب کن</h2>
+          <p id="character-lead">تو تنها بازیکن انسانی هستی. شش شخصیت دیگر هر کدام یک Agent مستقل‌اند.</p>
+        </div>
+        <div id="character-grid" class="character-grid"></div>
+      </section>
+
+      <section id="story-screen" class="screen story-screen" aria-live="polite">
+        <header class="story-header floating">
+          <button class="brand minimal" data-go-home type="button">
+            <img class="brand-logo" src="/ui/Images/Logo-transparent.png?v=20261006" alt="" aria-hidden="true" /><span>PALERMO NIGHTS</span>
+          </button>
+          <div class="story-status">
+            <span id="round-label">DAY 01</span>
+            <span id="agent-status"><i></i> 6 × GPT-5.6 LUNA</span>
           </div>
-          <div id="last-action">منتظر اولین حرکت…</div>
+        </header>
+
+        <button id="facts-toggle" class="facts-toggle" type="button" aria-label="دفتر وقایع" aria-controls="game-facts" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h12M7 12h12M7 19h12M3.5 5h.01M3.5 12h.01M3.5 19h.01" /></svg>
+          <span id="facts-toggle-label">دفتر وقایع</span>
+        </button>
+        <div id="facts-scrim" class="facts-scrim" aria-hidden="true"></div>
+        <aside id="game-facts" class="facts-drawer" aria-labelledby="facts-title" aria-hidden="true">
+          <header>
+            <div><h2 id="facts-title">حقیقت‌های آشکار بازی</h2></div>
+            <button id="facts-close" type="button" aria-label="بستن">×</button>
+          </header>
+          <div id="facts-player" class="facts-player"></div>
+          <nav id="console-tabs" class="console-tabs" aria-label="Player console">
+            <button type="button" data-console-tab="timeline"></button>
+            <button type="button" data-console-tab="private"></button>
+          </nav>
+          <div id="facts-content" class="facts-content"></div>
+        </aside>
+
+        <div id="story-stage" class="story-stage">
+          <img id="story-image" class="story-backdrop" src="" alt="" />
+          <div class="cinema-shade story-shade"></div>
+          <div id="story-content" class="story-content"></div>
+        </div>
+
+        <footer class="story-footer">
+          <div class="progress-copy" aria-live="polite">
+            <small id="scene-label"></small>
+            <strong id="slide-name"></strong>
+            <span id="slide-round"></span>
+          </div>
+          <div id="connection-state" class="connection-state"><i></i><span>CONNECTED</span></div>
         </footer>
       </section>
     </main>
-    <script src="/ui/app.js" defer></script>
+
+    <div id="loading" class="loading-overlay is-hidden" role="status">
+      <img class="loading-mark" src="/ui/Images/Logo-transparent.png?v=20261006" alt="" aria-hidden="true" />
+      <p id="loading-text">شهر در حال بیدار شدن است…</p>
+    </div>
+    <div id="toast" class="toast" role="alert"></div>
+    <script src="/ui/journal.js?v=20261008" defer></script>
+    <script src="/ui/archive.js?v=20261008" defer></script>
+    <script src="/ui/app.js?v=20261013" defer></script>
   </body>
 </html>

@@ -76,7 +76,21 @@ class EngineTestCase(unittest.TestCase):
             self.engine.private_state(self.game, "P1")["mafia_private_information"]["partner"],
             "P2",
         )
+        self.assertEqual(
+            self.engine.private_state(self.game, "P2")["mafia_private_information"]["partner"],
+            "P1",
+        )
         self.assertEqual(self.game.players["P4"].trust["P1"], 50)
+
+    def test_role_claim_rejects_mafia_roles_for_every_player_type(self) -> None:
+        self.engine.submit_action(
+            self.game, "P1", Action.SELECT_STRATEGY, {"strategy": "USE_CONTRADICTION"}
+        )
+        with self.assertRaisesRegex(RuleViolation, "INVALID_ROLE_CLAIM"):
+            self.engine.submit_action(
+                self.game, "P2", Action.ROLE_CLAIM,
+                {"claimed_role": Role.MAFIA_BOSS.value},
+            )
 
     def test_player_authentication_is_scoped(self) -> None:
         p1 = self.game.players["P1"]
@@ -100,6 +114,10 @@ class EngineTestCase(unittest.TestCase):
         self.assertIsNone(self.game.shunned_player)
         self.assertEqual(self.game.round, 2)
         self.assertEqual(self.game.phase, Phase.DAY_DISCUSSION)
+        self.assertIn(
+            {"round": 1, "player": "P6", "reason": "SHUNNED_BY_VOTE"},
+            self.engine.public_state(self.game)["night_action_blocks"],
+        )
 
     def test_shunned_role_cannot_act_or_be_investigated(self) -> None:
         self.game.phase = Phase.NIGHT_ACTION
@@ -141,6 +159,40 @@ class EngineTestCase(unittest.TestCase):
             Action.ANSWER,
             {"question_id": question_id, "text": "This is my answer."},
         )
+        self.assertEqual(self.game.phase, Phase.DAY_VOTING)
+
+    def test_one_answer_resolves_all_questions_for_the_player(self) -> None:
+        self.engine.submit_action(
+            self.game, "P1", Action.SELECT_STRATEGY, {"strategy": "CREATE_TWO_SIDES"}
+        )
+        for index in range(1, 8):
+            self.engine.submit_action(
+                self.game, f"P{index}", Action.ROLE_CLAIM,
+                {"claimed_role": Role.CITIZEN.value},
+            )
+        target = self.game.discussion_order[-1]
+        askers = self.game.discussion_order[:2]
+        for player_id in self.game.discussion_order:
+            if player_id in askers:
+                self.engine.submit_action(
+                    self.game, player_id, Action.ASK,
+                    {"target": target, "text": f"Question from {player_id}"},
+                )
+            else:
+                self.engine.submit_action(self.game, player_id, Action.PASS, {})
+
+        self.assertIn(Action.ANSWER.value, self.engine.available_actions(self.game, target))
+        self.engine.submit_action(
+            self.game, target, Action.ANSWER,
+            {"text": "One combined answer for both questions."},
+        )
+
+        self.assertTrue(all(question.answered for question in self.game.questions))
+        answers = [event for event in self.game.events if event.type == "PLAYER_ANSWERED"]
+        self.assertEqual(len(answers), 1)
+        self.assertEqual(set(answers[0].payload["question_ids"]), {
+            question.question_id for question in self.game.questions
+        })
         self.assertEqual(self.game.phase, Phase.DAY_VOTING)
 
     def test_doctor_cannot_repeat_target_on_consecutive_active_nights(self) -> None:
@@ -189,8 +241,10 @@ class EngineTestCase(unittest.TestCase):
         self.assertEqual(self.game.players["P1"].trust["P4"], before - 15)
 
     def test_deputy_takes_over_kill_when_boss_is_dead(self) -> None:
-        self.game.players["P1"].alive = False
         self.game.phase = Phase.NIGHT_ACTION
+        self.assertIn(Action.KILL.value, self.engine.available_actions(self.game, "P1"))
+        self.assertNotIn(Action.KILL.value, self.engine.available_actions(self.game, "P2"))
+        self.game.players["P1"].alive = False
         self.assertNotIn(Action.KILL.value, self.engine.available_actions(self.game, "P1"))
         self.assertIn(Action.KILL.value, self.engine.available_actions(self.game, "P2"))
 
