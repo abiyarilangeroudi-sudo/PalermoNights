@@ -180,3 +180,38 @@ PYTHONPATH=. .venv/bin/python audit/2026-10-02/serve_delayed.py
 ```
 
 Open `http://127.0.0.1:8017/ui/`. This test server uses offline agents and makes no remote model requests.
+
+## Cloudflare Workers deployment
+
+The repository includes a Python Worker entrypoint in `src/worker.py` and a
+`wrangler.jsonc` configuration. Cloudflare serves the `Frontend/` directory as
+Workers Static Assets while the FastAPI routes handle the API first. The
+entrypoint also translates the existing `/ui/...` browser paths to the asset
+root, so CSS, JavaScript, images, fonts, and audio do not return 404 errors.
+
+Install the Cloudflare Python Worker tooling and run the Worker locally:
+
+```bash
+uv sync --dev
+uv run pywrangler dev
+```
+
+After authenticating Wrangler, deploy it with:
+
+```bash
+npx wrangler login
+uv run pywrangler deploy
+```
+
+Configure the AI provider values as Cloudflare secrets rather than committing
+`.env` files. The exact secret names are the environment variable names used
+by `app/ai/config.py`, for example:
+
+```bash
+npx wrangler secret put OPENAI_API_KEY
+```
+
+The current game repository is in-memory, so a Worker restart or isolate change
+can expire active matches. Persistent multiplayer state should be moved to a
+Cloudflare Durable Object or another Cloudflare storage binding before treating
+the deployment as production-ready.

@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "palermo-nights",
+  "main": "src/worker.py",
+  "compatibility_date": "2026-10-03",
+  "compatibility_flags": ["python_workers"],
+  "assets": {
+    "directory": "./Frontend",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
+}
