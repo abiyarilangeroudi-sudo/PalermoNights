@@ -14,6 +14,19 @@ os.environ["PALERMO_CLOUDFLARE_WORKER"] = "1"
 from app.main import app  # noqa: E402
 
 
+@app.get("/health/ai-config")
+async def ai_config_health(request: Request):
+    """Report whether production AI bindings exist without exposing their values."""
+    env = request.scope.get("env")
+    api_key = getattr(env, "OPENAI_API_KEY", None) if env is not None else None
+    model = getattr(env, "OPENAI_PLAYER_MODEL", None) if env is not None else None
+    return {
+        "release": "cloudflare-ai-bindings-v2",
+        "openai_api_key_configured": bool(api_key),
+        "openai_player_model_configured": bool(model),
+    }
+
+
 def _frontend_asset_path(path: str) -> str:
     """Translate the app's historical /ui/* URLs to Frontend asset URLs."""
     normalized = path.lstrip("/")
