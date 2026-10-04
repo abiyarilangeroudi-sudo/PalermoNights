@@ -12,6 +12,11 @@ from workers import DurableObject, WorkerEntrypoint, asgi
 os.environ["PALERMO_CLOUDFLARE_WORKER"] = "1"
 
 from app.main import app  # noqa: E402
+from app.ai import service as ai_service  # noqa: E402
+
+# A Worker has no writable project filesystem. Audit events remain available in
+# Cloudflare logs; local FastAPI deployments keep their JSONL audit files.
+ai_service._write_audit_record = lambda _game_id, _record: None
 
 
 @app.get("/health/ai-config")
