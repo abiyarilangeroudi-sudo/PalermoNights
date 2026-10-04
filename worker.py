@@ -4,7 +4,7 @@ import os
 
 from fastapi import Request
 from fastapi.responses import Response
-from workers import asgi
+from workers import DurableObject, WorkerEntrypoint, asgi
 
 # The regular FastAPI server mounts Frontend/ from its local filesystem. Workers
 # serves those files through the ASSETS binding instead, so disable that mount
@@ -51,4 +51,16 @@ async def frontend(path: str, request: Request):
     )
 
 
-Default = asgi.entrypoint(app)
+class GameServer(DurableObject):
+    """Keep the stateful FastAPI game runtime on one Cloudflare isolate."""
+
+    async def fetch(self, request):
+        return await asgi.fetch(app, request.js_object, self.env)
+
+
+class Default(WorkerEntrypoint):
+    """Route every request through the singleton stateful game server."""
+
+    async def fetch(self, request):
+        server = self.env.GAME_SERVER.getByName("palermo-nights")
+        return await server.fetch(request.js_object)

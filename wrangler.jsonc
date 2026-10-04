@@ -8,5 +8,19 @@
     "directory": "./Frontend",
     "binding": "ASSETS",
     "run_worker_first": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "GAME_SERVER",
+        "class_name": "GameServer"
+      }
+    ]
+  },
+  "exports": {
+    "GameServer": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
   }
 }
