@@ -4,12 +4,15 @@ import asyncio
 import json
 import os
 import secrets
+import copy
+import hashlib
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from collections.abc import Mapping
 from typing import Any, Literal
 
-from fastapi import FastAPI, Header, HTTPException, Query, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
@@ -20,11 +23,14 @@ from .ai.service import (
     AIRunRegistry,
     build_runner,
     execute_run,
-    update_run_progress,
+    audit_entry,
 )
 from .domain import Action, CLAIMABLE_ROLES, PlayerType, RuleViolation
 from .engine import GameEngine
 from .repository import InMemoryGameRepository
+from .persistence import SnapshotStore, snapshot
+from .runtime import GameRuntime
+from .admission import Admission, issue_session, limit
 
 
 class CreateGameRequest(BaseModel):
@@ -42,6 +48,8 @@ class ActionRequest(BaseModel):
     suspect_2: str | None = None
     trusted_player: str | None = None
     question_id: str | None = None
+    request_id: str | None = Field(default=None, min_length=8, max_length=128)
+    expected_event_id: str | None = Field(default=None, max_length=128)
 
 
 class CreateAIGameRequest(BaseModel):
@@ -57,10 +65,41 @@ class CreateInteractiveGameRequest(BaseModel):
     ai_mode: Literal["luna", "offline"] = "luna"
 
 
-app = FastAPI(title="Palermo Nights", version="0.1.0")
+@asynccontextmanager
+async def lifespan(app):
+    if os.getenv("PALERMO_CLOUDFLARE_WORKER") != "1":
+        from dotenv import load_dotenv
+        load_dotenv(".env", override=False)
+        store = SnapshotStore(os.getenv("PALERMO_DB_PATH", ".palermo-data/games.sqlite3"))
+        store.open()
+        runtime.store = store
+        try:
+            for value in store.all():
+                runtime.restore(value)
+            maintenance = asyncio.create_task(runtime.maintain())
+            yield
+        finally:
+            if "maintenance" in locals():
+                maintenance.cancel()
+                await asyncio.gather(maintenance, return_exceptions=True)
+            try:
+                await runtime.stop()
+            finally:
+                runtime.store = None
+                store.close()
+    else:
+        yield
+
+
+app = FastAPI(title="Palermo Nights", version="0.1.0", lifespan=lifespan)
 engine = GameEngine()
 games = InMemoryGameRepository()
 ai_runs = AIRunRegistry()
+runtime = GameRuntime(engine, games, ai_runs)
+admission = Admission(runtime)
+from .ai import library as strategy_library
+strategy_library._approved = lambda: [c['review'] for c in runtime.store.lessons() if c.get('review', {}).get('status') == 'reviewed'] if runtime.store else []
+
 
 CHARACTER_NAMES = {
     1: "Matteo Ricci",
@@ -126,15 +165,30 @@ async def rule_violation_handler(_, exc: RuleViolation):
     )
 
 
+@app.post("/session")
+async def create_session(request: Request, response: Response):
+    return issue_session(request, response)
+
+
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health(request: Request) -> dict[str, str]:
+    binding = getattr(request.scope.get("env"), "CF_VERSION_METADATA", None)
+    return {"status": "ok", "release": "2026-10-04-cloud-library",
+            "deployment_id": str(getattr(binding, "id", "local")),
+            "storage": "durable-object" if runtime.external_scheduler else "sqlite"}
 
 
 @app.post("/games", status_code=201)
-def create_game(request: CreateGameRequest) -> dict[str, Any]:
+async def create_game(request: CreateGameRequest, http_request: Request) -> dict[str, Any]:
+    with games.lock:
+        admission.admit(http_request)
     game = engine.create_game(request.player_types)
     games.add(game)
+    try:
+        runtime.save(game.game_id)
+    except Exception:
+        games._games.pop(game.game_id, None)
+        raise
     # Tokens are returned only once to the trusted game creator for distribution.
     return {
         "game_id": game.game_id,
@@ -150,6 +204,7 @@ def create_game(request: CreateGameRequest) -> dict[str, Any]:
 async def create_ai_game(
     request: CreateAIGameRequest, http_request: Request
 ) -> dict[str, Any]:
+    owner = admission.admit(http_request, live=request.mode == "live")
     settings = None
     if request.mode == "live":
         try:
@@ -164,16 +219,17 @@ async def create_ai_game(
     games.add(game)
     run = AIRun(game_id=game.game_id, mode=request.mode)
     ai_runs.add(run)
-    budget = None if request.live_action_budget == 0 else request.live_action_budget
+    budget = min(request.live_action_budget or 20, limit("PALERMO_DECISIONS_PER_AGENT", 20))
+    run.live_action_budget = budget
+    run.owner = owner
     runner = build_runner(
         engine,
         game,
         mode=request.mode,
         settings=settings,
         live_action_budget=budget,
-        on_entry=lambda entry: update_run_progress(run, entry),
     )
-    run.task = asyncio.create_task(execute_run(run, runner))
+    runtime.start(run, runner)
     return {
         "game_id": game.game_id,
         "mode": request.mode,
@@ -189,6 +245,7 @@ async def create_ai_game(
 async def create_interactive_game(
     request: CreateInteractiveGameRequest, http_request: Request
 ) -> dict[str, Any]:
+    owner = admission.admit(http_request, live=request.ai_mode == "luna")
     settings = None
     mode = "offline"
     ai_model = "deterministic-fallback"
@@ -220,20 +277,21 @@ async def create_interactive_game(
         character_id=request.character_id,
         language=request.language,
         ai_model=ai_model,
+        owner=owner,
+        live_action_budget=limit("PALERMO_DECISIONS_PER_AGENT", 20),
     )
     runner = build_runner(
         engine,
         game,
         mode=mode,
         settings=settings,
-        live_action_budget=None,
+        live_action_budget=run.live_action_budget,
         language=request.language,
         player_names=interactive_player_names(request.character_id),
-        on_entry=lambda entry: update_run_progress(run, entry),
     )
     run.runner = runner
     ai_runs.add(run)
-    run.task = asyncio.create_task(execute_run(run, runner))
+    runtime.start(run, runner)
     return {
         "game_id": game.game_id,
         "status": run.status,
@@ -255,12 +313,12 @@ async def create_interactive_game(
 
 
 @app.get("/game/{game_id}/public-state")
-def public_state(game_id: str) -> dict[str, Any]:
+async def public_state(game_id: str) -> dict[str, Any]:
     return engine.public_state(games.get(game_id))
 
 
 @app.get("/game/{game_id}/player/{player_id}/private-state")
-def private_state(
+async def private_state(
     game_id: str, player_id: str, x_player_token: str | None = Header(default=None)
 ) -> dict[str, Any]:
     game = games.get(game_id)
@@ -269,7 +327,7 @@ def private_state(
 
 
 @app.get("/game/{game_id}/player/{player_id}/available-actions")
-def available_actions(
+async def available_actions(
     game_id: str, player_id: str, x_player_token: str | None = Header(default=None)
 ) -> dict[str, Any]:
     game = games.get(game_id)
@@ -278,7 +336,7 @@ def available_actions(
 
 
 @app.get("/game/{game_id}/player/{player_id}/observation")
-def player_observation(
+async def player_observation(
     game_id: str, player_id: str, x_player_token: str | None = Header(default=None)
 ) -> dict[str, Any]:
     """Return the same filtered information boundary used by an AI agent."""
@@ -305,7 +363,7 @@ def player_observation(
 
 
 @app.post("/game/{game_id}/player/{player_id}/action")
-def take_action(
+async def take_action(
     game_id: str,
     player_id: str,
     request: ActionRequest,
@@ -316,7 +374,16 @@ def take_action(
     with games.lock:
         if ai_runs.contains(game_id):
             raise RuleViolation("USE_INTERACTIVE_ACTION_ENDPOINT")
-        return engine.submit_action(game, player_id, request.action, request.model_dump(exclude_none=True))
+        before = copy.deepcopy(game)
+        try:
+            result = engine.submit_action(game, player_id, request.action, request.model_dump(exclude_none=True))
+            runtime.save(game_id)
+        except Exception:
+            from dataclasses import fields
+            for f in fields(game):
+                setattr(game, f.name, getattr(before, f.name))
+            raise
+        return result
 
 
 @app.post("/game/{game_id}/interactive/action")
@@ -331,10 +398,22 @@ async def take_interactive_action(
     if player_id is None:
         raise HTTPException(status_code=409, detail="game is not interactive")
     engine.authenticate(game, player_id, x_player_token)
+    fingerprint = hashlib.sha256(json.dumps(request.model_dump(exclude={"request_id", "expected_event_id"}), sort_keys=True).encode()).hexdigest()
+    if request.request_id and request.request_id in run.receipts:
+        receipt = run.receipts[request.request_id]
+        if receipt["fingerprint"] != fingerprint:
+            raise HTTPException(status_code=409, detail="request_id reused with different action")
+        return receipt["response"]
+    if request.expected_event_id:
+        visible = engine.visible_events(game, player_id)
+        if not visible or visible[-1]["event_id"] != request.expected_event_id:
+            raise HTTPException(status_code=409, detail="stale action; refresh game state")
     if run.status != "WAITING_FOR_HUMAN":
         raise HTTPException(status_code=409, detail="the game is not waiting for the human")
     payload = request.model_dump(exclude_none=True)
     payload.pop("action", None)
+    payload.pop("request_id", None)
+    payload.pop("expected_event_id", None)
     if request.action == Action.ROLE_CLAIM:
         allowed_claims = {role.value for role in CLAIMABLE_ROLES}
         if request.claimed_role not in allowed_claims:
@@ -350,20 +429,59 @@ async def take_interactive_action(
         payload.pop("question_id", None)
 
     with games.lock:
-        result = run.runner.submit_participant_decision(
-            player_id,
-            request.action,
-            payload,
-            source="human",
-            required_actions=run.awaiting_actions,
-        )
-    run.status = "QUEUED"
-    run.awaiting_actions.clear()
-    run.task = asyncio.create_task(execute_run(run, run.runner))
-    return {**result, "run_state_url": f"/game/{game_id}/run-state"}
+        before = copy.deepcopy(snapshot(game, run))
+        try:
+            result = run.runner.submit_participant_decision(
+                player_id, request.action, payload, source="human",
+                required_actions=run.awaiting_actions,
+            )
+            result = {**result, "run_state_url": f"/game/{game_id}/run-state"}
+            run.status = "QUEUED"
+            run.awaiting_actions.clear()
+            if request.request_id:
+                run.receipts[request.request_id] = {"fingerprint": fingerprint, "response": result}
+            runtime.save(game_id)
+        except Exception:
+            runtime.rollback(run, before)
+            raise
+    audit_entry(run, run.runner.transcript[-1])
+    runtime.schedule(run)
+    return result
+
+class LessonReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str = Field(min_length=1, max_length=1200)
+    observation: str = Field(min_length=1, max_length=1200)
+    hypothesis: str = Field(min_length=1, max_length=1200)
+    counterexample: str = Field(min_length=1, max_length=1200)
+    limitations: str = Field(min_length=1, max_length=1200)
+
+
+@app.post("/game/{game_id}/analysis/review")
+async def review_lesson(game_id: str, review: LessonReviewRequest, x_review_key: str | None = Header(default=None)):
+    key = os.getenv("PALERMO_REVIEW_KEY", "")
+    if not key or not secrets.compare_digest(key, x_review_key or ""):
+        raise HTTPException(401, "review access required")
+    from .lesson_review import reviewed_card
+    case = strategy_library.analyze_game(games.get(game_id))
+    if not case['complete']:
+        raise HTTPException(409, "Only completed games can be reviewed")
+    case['review'] = reviewed_card(case, review.model_dump())
+    runtime.store.update_lesson(case)
+    return {"success": True, "version": case['review']['version']}
+
+
+@app.get("/game/{game_id}/analysis")
+async def game_analysis(game_id: str):
+    from .ai.library import analyze_game
+    game = games.get(game_id)
+    if game.phase.value != "GAME_OVER":
+        raise HTTPException(409, "Analysis is available after game over")
+    return analyze_game(game)
+
 
 @app.get("/game/{game_id}/events")
-def events(
+async def events(
     game_id: str,
     player_id: str | None = Query(default=None),
     x_player_token: str | None = Header(default=None),
@@ -399,6 +517,10 @@ async def cancel_ai_run(
     elif not x_run_token or not secrets.compare_digest(run.control_token, x_run_token):
         raise HTTPException(status_code=401, detail="run authentication failed")
     if run.status not in {"QUEUED", "RUNNING", "WAITING_FOR_HUMAN"}:
+        # Even an idempotent cancellation retry must make the terminal state durable.
+        runtime.save(game_id)
+        if run.status == "CANCELLED":
+            return {"success": True, "status": run.status}
         raise HTTPException(status_code=409, detail="run is not active")
     if run.task and not run.task.done():
         run.task.cancel()
@@ -406,9 +528,13 @@ async def cancel_ai_run(
             await run.task
         except asyncio.CancelledError:
             pass  # The task may have been cancelled before execute_run started.
+        except Exception:
+            # Its final checkpoint may have failed; the explicit save below must succeed.
+            pass
     run.status = "CANCELLED"
     run.awaiting_actions.clear()
     run.finished_at = datetime.now(UTC).isoformat()
+    runtime.save(game_id)
     return {"success": True, "status": run.status}
 
 

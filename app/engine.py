@@ -269,12 +269,28 @@ class GameEngine:
         if game.phase == Phase.ROLE_CLAIM and all(p.role_claim for p in game.players.values() if p.alive):
             self._start_discussion(game)
 
+    def _public_position(self, game: Game, player: Player, payload: dict[str, Any]) -> dict[str, Any]:
+        position = payload.get("position")
+        if position is None:
+            return {}
+        if not isinstance(position, dict):
+            raise RuleViolation("INVALID_PUBLIC_POSITION")
+        target = position.get("target")
+        ids = position.get("evidence_ids", [])
+        public_ids = {event.event_id for event in game.events if event.visibility == "PUBLIC"}
+        if (not isinstance(target, str) or target == player.player_id or target not in game.players or not game.players[target].alive
+                or not isinstance(ids, list) or len(ids) > 4
+                or any(not isinstance(eid, str) or eid not in public_ids for eid in ids)
+                or not isinstance(position.get("reason"), str) or len(position["reason"]) > 320):
+            raise RuleViolation("INVALID_PUBLIC_POSITION")
+        return {"position": {"target": target, "reason": position["reason"], "evidence_ids": list(ids)}}
+
     def _speak(self, game: Game, player: Player, payload: dict[str, Any], _: Action) -> None:
         text = self._text(payload, "text")
         self._event(
             game,
             "PLAYER_SPOKE",
-            {"actor": player.player_id, "text": text, "discussion_turn": game.discussion_index + 1},
+            {"actor": player.player_id, "text": text, "discussion_turn": game.discussion_index + 1, **self._public_position(game, player, payload)},
         )
         self._finish_speaking_turn(game)
 
@@ -283,6 +299,7 @@ class GameEngine:
         if target.player_id == player.player_id:
             raise RuleViolation("CANNOT_ASK_SELF")
         text = self._text(payload, "text")
+        position = self._public_position(game, player, payload)
         question = Question(
             question_id=f"q_{game.round}_{len(game.questions) + 1}",
             actor=player.player_id,
@@ -294,6 +311,7 @@ class GameEngine:
             game,
             "PLAYER_ASKED",
             {
+                **position,
                 "question_id": question.question_id,
                 "actor": player.player_id,
                 "target": target.player_id,
@@ -308,11 +326,13 @@ class GameEngine:
         if not pending:
             raise RuleViolation("NO_PENDING_QUESTION")
         text = self._text(payload, "text")
+        position = self._public_position(game, player, payload)
         for question in pending:
             question.answered = True
         question_ids = [question.question_id for question in pending]
         targets = list(dict.fromkeys(question.actor for question in pending))
         event_payload: dict[str, Any] = {
+            **position,
             "question_ids": question_ids,
             "actor": player.player_id,
             "targets": targets,
@@ -336,22 +356,24 @@ class GameEngine:
 
     def _vote(self, game: Game, player: Player, payload: dict[str, Any], _: Action) -> None:
         vote_target = self._living_target(game, payload.get("vote_target")).player_id
-        trusted = self._living_target(game, payload.get("trusted_player")).player_id
-        alive_mafia = self._alive_count(game, Faction.MAFIA)
+        trusted = payload.get("trusted_player")
         suspect = payload.get("suspect_2")
-        if player.player_id in (vote_target, trusted, suspect):
+        if player.faction == Faction.MAFIA:
+            # Old clients may still send these fields. They have no effect for Mafia.
+            trusted = suspect = None
+        selected = [vote_target]
+        for target in (trusted, suspect):
+            if target is not None:
+                selected.append(self._living_target(game, target).player_id)
+        if player.player_id in selected:
             raise RuleViolation("VOTE_DECISION_CANNOT_TARGET_SELF")
-        if alive_mafia > 1:
-            suspect = self._living_target(game, suspect).player_id
-            if len({vote_target, trusted, suspect}) != 3:
-                raise RuleViolation("VOTE_DECISION_TARGETS_MUST_BE_DISTINCT")
-        else:
-            if suspect is not None:
-                raise RuleViolation("SUSPECT_2_NOT_ALLOWED_WITH_ONE_MAFIA")
-            if vote_target == trusted:
-                raise RuleViolation("VOTE_AND_TRUST_TARGETS_MUST_DIFFER")
+        if len(set(selected)) != len(selected):
+            raise RuleViolation("VOTE_DECISION_TARGETS_MUST_BE_DISTINCT")
+        position = self._public_position(game, player, payload)
+        if position and position["position"]["target"] != vote_target:
+            raise RuleViolation("VOTE_POSITION_MISMATCH")
         game.vote_decisions[player.player_id] = VoteDecision(vote_target, trusted, suspect)
-        self._event(game, "VOTE_CAST", {"actor": player.player_id, "target": vote_target})
+        self._event(game, "VOTE_CAST", {"actor": player.player_id, "target": vote_target, **position})
         if len(game.vote_decisions) == len(self._alive_players(game)):
             self._resolve_vote(game)
 
@@ -376,10 +398,13 @@ class GameEngine:
 
     def _resolve_vote(self, game: Game) -> None:
         for player_id, decision in game.vote_decisions.items():
+            if game.players[player_id].faction == Faction.MAFIA:
+                continue
             self._change_trust(game, player_id, decision.vote_target, -15, "VOTE_TARGET")
             if decision.suspect_2:
                 self._change_trust(game, player_id, decision.suspect_2, -10, "SUSPECT_2")
-            self._change_trust(game, player_id, decision.trusted_player, 10, "TRUSTED_PLAYER")
+            if decision.trusted_player:
+                self._change_trust(game, player_id, decision.trusted_player, 10, "TRUSTED_PLAYER")
 
         counts = Counter(decision.vote_target for decision in game.vote_decisions.values())
         top = max(counts.values())
@@ -446,6 +471,7 @@ class GameEngine:
             "attacker": killer.player_id if killer else None,
             "attack_target": mafia_target,
             "protected_target": protected,
+            "doctor": doctor.player_id if doctor else None,
             "reason": (
                 "NO_ACTIVE_ATTACKER" if killer is None else
                 "ATTACKER_BLOCKED" if killer.shunned else
@@ -477,6 +503,9 @@ class GameEngine:
                 **{k: v for k, v in game.last_night_result.items() if k != "type"},
             },
         )
+
+        if killed:
+            self._publish_will(game, killed)
 
         if game.shunned_player:
             game.players[game.shunned_player].shunned = False
@@ -523,12 +552,16 @@ class GameEngine:
             visibility,
         )
         if reveal_will:
-            self._event(
-                game,
-                "WILL_REVEALED",
-                {"player": player_id, "text": player.will},
-                visibility,
-            )
+            self._publish_will(game, player_id)
+
+    def _publish_will(self, game: Game, player_id: str) -> None:
+        player = game.players[player_id]
+        self._event(game, "WILL_REVEALED", {
+            "player": player_id, "text": player.will,
+            "trust": dict(player.trust) if player.faction == Faction.CITIZEN else {},
+            "snapshot_round": game.round,
+            "subjective": True,
+        })
 
     def _start_discussion(self, game: Game) -> None:
         game.phase = Phase.DAY_DISCUSSION

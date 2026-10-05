@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import secrets
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -30,6 +31,14 @@ def _write_audit_record(game_id: str, record: dict[str, Any]) -> None:
         handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 
+def record_audit(game_id: str, record: dict[str, Any]) -> None:
+    """Diagnostics must never turn an accepted game action into a failed action."""
+    try:
+        _write_audit_record(game_id, record)
+    except OSError:
+        logging.getLogger(__name__).warning("Audit storage unavailable for %s", game_id)
+
+
 class OfflineProvider:
     provider_name = "offline"
     model = "deterministic-fallback"
@@ -46,6 +55,7 @@ class AIRun:
     started_at: str | None = None
     finished_at: str | None = None
     current_step: int = 0
+    last_progress_at: str | None = None
     last_action: dict[str, Any] | None = None
     summary: dict[str, Any] | None = None
     error: str | None = None
@@ -58,11 +68,18 @@ class AIRun:
     awaiting_actions: list[str] = field(default_factory=list)
     fallback_actions: int = 0
     last_failure: str | None = None
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    owner: str = "local"
+    live_action_budget: int = 20
+    receipts: dict[str, Any] = field(default_factory=dict, repr=False)
+    checkpoint: Any = field(default=None, repr=False)
+    suspending: bool = False
     task: Any = field(default=None, repr=False)
     runner: Any = field(default=None, repr=False)
 
     def public_dict(self, *, participant: bool = False) -> dict[str, Any]:
         return {
+            **({"accepted_request_ids": list(self.receipts)} if participant else {}),
             "game_id": self.game_id,
             "mode": self.mode,
             # Even a public "waiting for human" during Night 1 identifies the
@@ -137,7 +154,7 @@ def build_runner(
                 raise ValueError("Live mode requires AI settings")
             provider = build_failover_provider(
                 settings.player_providers[index],
-                settings.fallback_providers,
+                (),
                 timeout_seconds=settings.request_timeout_seconds,
                 min_interval_seconds=settings.min_request_interval_seconds,
                 reasoning_effort=settings.openai_reasoning_effort,
@@ -145,11 +162,12 @@ def build_runner(
             agents[player_id] = AIAgent(
                 player_id,
                 provider,
-                max_output_tokens=settings.max_output_tokens,
-                speak_max_output_tokens=settings.speak_max_output_tokens,
+                require_assessment=False,
+                max_output_tokens=min(settings.max_output_tokens, 4096),
+                speak_max_output_tokens=min(settings.speak_max_output_tokens, 4096),
                 decision_gate=gate,
-                decision_timeout_seconds=settings.decision_timeout_seconds,
-                gate_timeout_seconds=settings.typesafe_decision_timeout_seconds,
+                decision_timeout_seconds=min(settings.decision_timeout_seconds, 60),
+                gate_timeout_seconds=min(settings.typesafe_decision_timeout_seconds, 30),
                 remote_decision_budget=live_action_budget,
                 gate_decision_budget=live_action_budget,
                 language=language,
@@ -165,18 +183,22 @@ def build_runner(
     return HeadlessGameRunner(engine, game, agents, on_entry=on_entry)
 
 
-async def execute_run(run: AIRun, runner: HeadlessGameRunner) -> None:
+async def execute_run(run: AIRun, runner: HeadlessGameRunner, *, batch_steps: int | None = None) -> None:
     run.status = "RUNNING"
     run.awaiting_actions.clear()
     if run.started_at is None:
         run.started_at = datetime.now(UTC).isoformat()
     try:
-        await runner.run()
+        async with asyncio.timeout(900):
+            await runner.run(batch_steps=batch_steps, continue_if=lambda: run.status == "RUNNING")
+        if runner.game.phase.value != "GAME_OVER":
+            run.status = "QUEUED"
+            return
         run.summary = runner.summary()
         run.status = "COMPLETED"
         run.finished_at = datetime.now(UTC).isoformat()
-        _write_audit_record(run.game_id, {"type": "RUN_COMPLETED", "summary": run.summary})
-        _write_audit_record(run.game_id, {
+        record_audit(run.game_id, {"type": "RUN_COMPLETED", "summary": run.summary})
+        record_audit(run.game_id, {
             "type": "COMPLETED_NIGHT_REPLAY",
             "nights": runner.engine.completed_night_replay(runner.game),
         })
@@ -184,21 +206,29 @@ async def execute_run(run: AIRun, runner: HeadlessGameRunner) -> None:
         run.status = "WAITING_FOR_HUMAN"
         run.awaiting_actions = runner.required_actions(exc.player_id)
     except asyncio.CancelledError:
+        if run.suspending:
+            run.status = "QUEUED"
+            return
         run.status = "CANCELLED"
         run.finished_at = datetime.now(UTC).isoformat()
-        _write_audit_record(run.game_id, {"type": "RUN_CANCELLED"})
+        record_audit(run.game_id, {"type": "RUN_CANCELLED"})
     except Exception as exc:
         run.status = "FAILED"
         run.error = type(exc).__name__
         run.finished_at = datetime.now(UTC).isoformat()
-        _write_audit_record(
+        record_audit(
             run.game_id,
             {"type": "RUN_FAILED", "error": type(exc).__name__, "message": str(exc)[:500]},
         )
 
+    finally:
+        if run.checkpoint:
+            run.checkpoint()
 
-def update_run_progress(run: AIRun, entry: RunnerEntry) -> None:
+
+def update_run_progress(run: AIRun, entry: RunnerEntry, *, audit: bool = True) -> None:
     run.current_step = entry.step
+    run.last_progress_at = datetime.now(UTC).isoformat()
     run.last_action = {
         "round": entry.round,
         "phase": entry.phase,
@@ -210,7 +240,12 @@ def update_run_progress(run: AIRun, entry: RunnerEntry) -> None:
         run.fallback_actions += 1
     if entry.failure:
         run.last_failure = entry.failure
-    _write_audit_record(
+    if audit:
+        audit_entry(run, entry)
+
+
+def audit_entry(run: AIRun, entry: RunnerEntry) -> None:
+    record_audit(
         run.game_id,
         {
             "type": "DECISION",

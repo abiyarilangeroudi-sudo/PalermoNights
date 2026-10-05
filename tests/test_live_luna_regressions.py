@@ -101,11 +101,11 @@ def test_vote_evidence_keeps_public_claims_separate_from_private_data():
     assert context["public_evidence"][-1]["text"] == "من کارآگاهم."
     assert not any(e["type"] == "INVESTIGATION_RESULT" for e in context["public_evidence"])
     assert not context["timeline"]["can_report_completed_investigation"]
-    assert "Do not request" in context["timeline"]["current_guidance"]
+    assert "current_guidance" not in context["timeline"]
     engine._event(game, "NIGHT_RESULT", {"result": "NO_KILL"})
     context = json.loads(agent._user_prompt(runner.observation(pid)))
     assert context["timeline"]["can_report_completed_investigation"]
-    assert "unverified claim" in context["timeline"]["current_guidance"]
+    assert context["timeline"]["completed_ability_nights"] == [1]
 
 
 def test_vote_history_keeps_all_voters_even_after_many_later_statements():
@@ -131,7 +131,7 @@ async def test_duplicate_vote_preserves_primary_and_is_accepted_by_engine():
     decision = await agent.decide(runner.observation(pid))
     assert decision.payload["vote_target"] == others[0]
     assert decision.source == "model+repaired"
-    assert decision.corrections == ("trusted_player_reselected", "suspect_2_reselected")
+    assert decision.corrections == ("suspect_2_removed", "trusted_player_removed")
     engine.submit_action(game, pid, decision.action, decision.payload)
     assert game.vote_decisions[pid].vote_target == others[0]
 
@@ -151,7 +151,7 @@ def test_every_vote_combination_can_be_repaired_without_changing_primary():
 
 
 @pytest.mark.anyio
-async def test_one_remaining_mafia_removes_second_suspect_and_uses_null_schema():
+async def test_citizen_can_optionally_keep_second_suspect_with_one_mafia():
     engine, game, runner, pid = setup_game()
     deputy = next(p for p in game.players.values() if p.role == Role.MAFIA_DEPUTY)
     deputy.alive = False
@@ -161,8 +161,8 @@ async def test_one_remaining_mafia_removes_second_suspect_and_uses_null_schema()
                                "trusted_player": others[1], "suspect_2": others[2]})
     agent = AIAgent(pid, provider)
     decision = await agent.decide(runner.observation(pid))
-    assert "suspect_2" not in decision.payload
-    assert provider.request["schema"]["properties"]["suspect_2"]["type"] == "null"
+    assert decision.payload["suspect_2"] == others[2]
+    assert provider.request["schema"]["properties"]["suspect_2"]["type"] == ["string", "null"]
     engine.submit_action(game, pid, decision.action, decision.payload)
 
 

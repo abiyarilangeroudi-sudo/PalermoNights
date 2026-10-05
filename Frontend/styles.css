@@ -585,7 +585,7 @@ html[dir="rtl"] .facts-drawer { inset: 0 auto 0 0; transform: translateX(-105%);
 .strategy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; max-width: 660px; }
 .strategy-choice { width: 100%; }
 .vote-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(235px, 300px); align-items: end; gap: 18px; width: 100%; }
-.vote-decision-panel { display: grid; gap: 12px; padding: 16px; border: 1px solid rgba(199, 169, 109, .5); background: rgba(8, 12, 9, .9); backdrop-filter: blur(12px); }
+.vote-decision-panel { position: relative; z-index: 5; display: grid; gap: 12px; padding: 16px; border: 1px solid rgba(199, 169, 109, .5); background: rgba(8, 12, 9, .9); backdrop-filter: blur(12px); }
 .vote-decision-panel > b { color: var(--gold); font-size: .7rem; }
 #selected-vote { min-height: 1.5em; color: var(--ink); font-weight: 750; }
 .target-card.is-selected { outline: 3px solid var(--gold-bright); outline-offset: -3px; }
@@ -797,4 +797,27 @@ html[dir="rtl"] .toast.is-visible { translate: 50% 0; }
 @media (max-height: 620px) {
   .story-content.scrollable-form .dialogue-box.is-answering h2 { font-size: 1.4rem; }
   .story-content.scrollable-form .input-panel textarea { min-height: 64px; max-height: 64px; }
+}
+
+[hidden] { display: none !important; }
+
+/* A scrollable game surface also survives mobile browser chrome and keyboards. */
+.story-stage { height: 100dvh; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
+.story-content { min-height: 0; }
+.vote-layout { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+.vote-decision-panel { position: relative; z-index: 5; }
+.player-picker-button:disabled { opacity: .45; cursor: default; }
+.player-picker-menu [hidden] { display: none !important; }
+.will-trust { list-style: none; padding: 0; }
+.will-trust li { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.will-trust li b { margin-inline-start: auto; }
+@media (max-width: 680px), (max-height: 650px) {
+  .story-stage { padding-bottom: env(safe-area-inset-bottom); }
+  .story-stage .story-content { max-height: none; overflow: visible; }
+  .vote-layout .target-grid { height: min(30svh, 230px); min-height: 160px; }
+  .vote-decision-panel { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .vote-decision-panel label { min-width: 0; }
+  input, textarea, select, .player-picker-button { font-size: max(16px, 1rem); }
+  .player-picker-menu { max-height: min(30dvh, 220px); }
+  .primary-button { min-height: 48px; }
 }

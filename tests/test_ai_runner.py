@@ -103,7 +103,7 @@ def test_vote_fallback_uses_evidence_instead_of_first_player_order() -> None:
 
     assert decision.payload["vote_target"] == "P7"
     assert decision.payload["vote_target"] != observation.public_state["alive_players"][0]
-    assert len({decision.payload["vote_target"], decision.payload["trusted_player"], decision.payload["suspect_2"]}) == 3
+    assert "trusted_player" not in decision.payload and "suspect_2" not in decision.payload
 
 
 @pytest.mark.anyio

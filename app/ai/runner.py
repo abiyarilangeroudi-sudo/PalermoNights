@@ -6,6 +6,7 @@ from typing import Any, Callable
 from ..domain import Action, Game, Phase, PlayerType, RuleViolation
 from ..engine import GameEngine
 from .agent import AIAgent, AgentDecision, Observation
+from .reasoning import checked_decision
 
 
 class HumanInputRequired(RuntimeError):
@@ -39,8 +40,9 @@ class HeadlessGameRunner:
     transcript: list[RunnerEntry] = field(default_factory=list)
     on_entry: Callable[[RunnerEntry], None] | None = None
 
-    async def run(self, *, max_steps: int = 300) -> Game:
-        for step in range(len(self.transcript) + 1, max_steps + 1):
+    async def run(self, *, max_steps: int = 300, batch_steps: int | None = None, continue_if=None) -> Game:
+        initial = len(self.transcript)
+        for step in range(initial + 1, max_steps + 1):
             if self.game.phase == Phase.GAME_OVER:
                 return self.game
             player_id, actions = self._next_actor()
@@ -54,12 +56,15 @@ class HeadlessGameRunner:
             action_round = self.game.round
             action_phase = self.game.phase.value
             decision = await agent.decide(observation)
+            if continue_if is not None and not continue_if():
+                import asyncio
+                raise asyncio.CancelledError
             recovered = None
             try:
                 self.submit_decision(player_id, decision.action, dict(decision.payload), actions)
             except RuleViolation as exc:
                 recovered = exc.code
-                decision = agent.fallback_decision(observation)
+                decision = checked_decision(agent, agent.fallback_decision(observation), {}, observation)
                 self.submit_decision(player_id, decision.action, dict(decision.payload), actions)
             entry = RunnerEntry(
                 step=step,
@@ -75,6 +80,8 @@ class HeadlessGameRunner:
             self.transcript.append(entry)
             if self.on_entry:
                 self.on_entry(entry)
+            if batch_steps and step - initial >= batch_steps:
+                return self.game
         raise RunnerLimitExceeded(f"Game did not finish within {max_steps} actions")
 
     async def step(self) -> AgentDecision:

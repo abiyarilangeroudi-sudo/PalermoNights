@@ -8,6 +8,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..domain import Action, CLAIMABLE_ROLES, Role
+from .evidence import dossier, assessment_schema, public_events
+from .library import resources
+from .reasoning import checked_decision, clean_text
 from .providers import JsonProvider, ProviderError, TypeSafeDecisionProvider
 
 
@@ -35,6 +38,8 @@ class AgentState:
     hypotheses: list[str] = field(default_factory=list)
     strategy: str | None = None
     seen_event_ids: set[str] = field(default_factory=set)
+    belief_epoch: str | None = None
+    assessments: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,7 +71,9 @@ class AIAgent:
         gate_decision_budget: int | None = None,
         language: str = "fa",
         player_names: dict[str, str] | None = None,
+        require_assessment: bool = False,
     ) -> None:
+        self.require_assessment = require_assessment
         self.player_id = player_id
         self.provider = provider
         self.max_output_tokens = max_output_tokens
@@ -82,6 +89,7 @@ class AIAgent:
         self.player_names = dict(player_names or {})
         self.last_failure: str | None = None
         self.state = AgentState()
+        self.checkpoint = None
 
     async def decide(self, observation: Observation) -> AgentDecision:
         self._remember(observation.events)
@@ -91,7 +99,7 @@ class AIAgent:
             and self.remote_decisions_used >= self.remote_decision_budget
         ):
             fallback = self.fallback_decision(observation)
-            return await self._gate_target(fallback, observation)
+            return checked_decision(self, await self._gate_target(fallback, observation), {}, observation)
         max_tokens = (
             self.speak_max_output_tokens
             if any(action in observation.available_actions for action in ("SPEAK", "ASK", "ANSWER"))
@@ -99,6 +107,8 @@ class AIAgent:
         )
         try:
             self.remote_decisions_used += 1
+            if self.checkpoint:
+                self.checkpoint()
             schema = self._decision_schema(observation)
             async with asyncio.timeout(self.decision_timeout_seconds):
                 result = await self.provider.generate_json(
@@ -107,16 +117,19 @@ class AIAgent:
                     schema=schema,
                     max_output_tokens=max_tokens,
                 )
+            if self.require_assessment and result.get("action") in {"SPEAK", "ASK", "ANSWER", "SUBMIT_VOTE_DECISION"} and "assessment" not in result:
+                raise ValueError("model_omitted_assessment")
             decision = self._parse_decision(result, observation)
             decision = await self._gate_target(decision, observation)
             decision = self._validate_targets(decision, observation)
+            decision = checked_decision(self, decision, result, observation)
             self._apply_agent_state(result, observation)
             self.last_failure = None
             return decision
         except (ProviderError, TimeoutError, ValueError, KeyError, TypeError) as exc:
             self.last_failure = self._safe_failure(exc)
             fallback = self.fallback_decision(observation)
-            return await self._gate_target(fallback, observation)
+            return checked_decision(self, await self._gate_target(fallback, observation), {}, observation)
 
     def fallback_decision(self, observation: Observation) -> AgentDecision:
         actions = set(observation.available_actions)
@@ -161,18 +174,7 @@ class AIAgent:
             partner = private.get("mafia_private_information", {}).get("partner")
             legal_suspects = [pid for pid in ranked if pid != partner] or ranked
             vote_target = legal_suspects[0]
-            trusted = min(
-                (pid for pid in others if pid != vote_target),
-                key=lambda pid: self._fallback_suspicion(pid, observation),
-            )
-            payload: dict[str, Any] = {
-                "vote_target": vote_target,
-                "trusted_player": trusted,
-            }
-            if self._needs_second_suspect(observation):
-                payload["suspect_2"] = next(
-                    pid for pid in legal_suspects if pid not in {vote_target, trusted}
-                )
+            payload: dict[str, Any] = {"vote_target": vote_target}
             return AgentDecision(Action.SUBMIT_VOTE_DECISION.value, payload, "fallback")
         if Action.INVESTIGATE.value in actions:
             known = {item["target"] for item in private.get("investigations", [])}
@@ -210,13 +212,6 @@ class AIAgent:
             )
             if confirmed_elsewhere:
                 score += 120
-        votes_against_self = sum(
-            event.get("type") == "VOTE_CAST"
-            and event.get("actor") == player_id
-            and event.get("target") == self.player_id
-            for event in observation.events
-        )
-        score += 8 * votes_against_self
         material = (
             f"{public.get('game_id')}:{public.get('round')}:{self.player_id}:{player_id}"
         ).encode()
@@ -247,10 +242,12 @@ class AIAgent:
         if target_key is None:
             return decision
         options = self._legal_gate_targets(decision.action, observation)
-        if not options:
+        if not options or decision.payload.get(target_key) in options:
             return decision
         try:
             self.gate_decisions_used += 1
+            if self.checkpoint:
+                self.checkpoint()
             async with asyncio.timeout(self.gate_timeout_seconds):
                 choice, confidence = await self.decision_gate.choose(
                     state={
@@ -262,7 +259,7 @@ class AIAgent:
                     },
                     question_id="target",
                     options=options,
-                    instructions="Choose the strongest legal target for this Palermo Nights action.",
+                    instructions="Return a legal target for an otherwise invalid action.",
                 )
         except (ProviderError, TimeoutError):
             return decision
@@ -298,28 +295,17 @@ class AIAgent:
         if vote not in others:
             raise ValueError("illegal_vote_target")
         corrections = list(decision.corrections)
-        trusted = payload.get("trusted_player")
-        if trusted not in others or trusted == vote:
-            trusted = min(
-                (pid for pid in others if pid != vote),
-                key=lambda pid: self._fallback_suspicion(pid, observation),
-            )
-            payload["trusted_player"] = trusted
-            corrections.append("trusted_player_reselected")
-        if self._needs_second_suspect(observation):
-            if payload.get("suspect_2") not in others or payload.get("suspect_2") in {vote, trusted}:
-                payload["suspect_2"] = max(
-                    (pid for pid in others if pid not in {vote, trusted}),
-                    key=lambda pid: self._fallback_suspicion(pid, observation),
-                )
-                corrections.append("suspect_2_reselected")
-        elif "suspect_2" in payload:
-            payload.pop("suspect_2")
-            corrections.append("suspect_2_removed")
-        source = decision.source
-        if len(corrections) > len(decision.corrections) and "+repaired" not in source:
-            source += "+repaired"
-        return AgentDecision(action, payload, source, tuple(corrections))
+        used = {vote}
+        for key in ("suspect_2", "trusted_player"):
+            value = payload.get(key)
+            if observation.private_state.get("faction") == "MAFIA" or value not in others or value in used:
+                if value is not None:
+                    corrections.append(key + "_removed")
+                payload.pop(key, None)
+            elif value is not None:
+                used.add(value)
+
+        return AgentDecision(action, payload, "model+repaired" if corrections and decision.source == "model" else decision.source, tuple(corrections))
 
     def _legal_gate_targets(
         self, action: str, observation: Observation
@@ -363,7 +349,7 @@ class AIAgent:
             Action.SPEAK.value: ("text",),
             Action.ASK.value: ("target", "text"),
             Action.ANSWER.value: ("text",),
-            Action.SUBMIT_VOTE_DECISION.value: ("vote_target", "trusted_player"),
+            Action.SUBMIT_VOTE_DECISION.value: ("vote_target",),
             Action.INVESTIGATE.value: ("target",),
             Action.PROTECT.value: ("target",),
             Action.KILL.value: ("target",),
@@ -439,7 +425,7 @@ class AIAgent:
             )
         if "{{" in rendered or "}}" in rendered:
             raise ValueError("dialogue_contains_unknown_placeholder")
-        return rendered
+        return clean_text(rendered, self.language)
 
     def _remember(self, events: list[dict[str, Any]]) -> None:
         for event in events:
@@ -462,11 +448,16 @@ class AIAgent:
 
     def _initialize_beliefs(self, observation: Observation) -> None:
         trust = observation.private_state.get("trust", {})
+        epoch = json.dumps(trust, sort_keys=True)
         for player_id in observation.public_state["alive_players"]:
-            if player_id != self.player_id:
+            if player_id != self.player_id and (epoch != self.state.belief_epoch or player_id not in self.state.beliefs):
                 prior = self.state.beliefs.get(player_id, 2 / 6)
                 trust_signal = 1 - float(trust.get(player_id, 50)) / 100
                 self.state.beliefs[player_id] = round(0.7 * prior + 0.3 * trust_signal, 4)
+        self.state.belief_epoch = epoch
+        self._pin_known_roles(observation)
+
+    def _pin_known_roles(self, observation: Observation) -> None:
         for investigation in observation.private_state.get("investigations", []):
             result = investigation.get("result", "")
             self.state.beliefs[investigation["target"]] = (
@@ -495,6 +486,7 @@ class AIAgent:
                         self.state.beliefs[player_id] = max(0.0, min(1.0, float(probability)))
                     except (TypeError, ValueError):
                         continue
+        self._pin_known_roles(observation)
         summary = result.get("reasoning_summary")
         if isinstance(summary, str) and summary.strip():
             self.state.hypotheses.append(summary.strip()[:500])
@@ -558,13 +550,12 @@ class AIAgent:
             required.append("referenced_players")
         elif Action.SUBMIT_VOTE_DECISION.value in actions:
             properties["vote_target"] = {"type": "string", "enum": others}
-            properties["trusted_player"] = {"type": "string", "enum": others}
-            nullable_string("suspect_2", enum=others)
-            if not self._needs_second_suspect(observation):
-                properties["suspect_2"] = {"type": "null"}
-            properties["trusted_player"]["description"] = "Must differ from vote_target and suspect_2."
-            properties["suspect_2"]["description"] = "When required, choose a third distinct player."
-            required.extend(("vote_target", "trusted_player"))
+            required.append("vote_target")
+            if observation.private_state.get("faction") != "MAFIA":
+                nullable_string("suspect_2", enum=others)
+                nullable_string("trusted_player", enum=others)
+                for key in ("suspect_2", "trusted_player"):
+                    properties[key]["description"] = "Optional: null or a living player distinct from yourself, vote_target and the other optional selection."
         elif any(
             action in actions
             for action in (Action.INVESTIGATE.value, Action.PROTECT.value, Action.KILL.value)
@@ -574,6 +565,9 @@ class AIAgent:
             ))
             properties["target"] = {"type": "string", "enum": targets}
             required.append("target")
+        if self.require_assessment and any(action in actions for action in ("SPEAK", "ASK", "ANSWER", "SUBMIT_VOTE_DECISION")):
+            properties["assessment"] = assessment_schema(others, [e["event_id"] for e in public_events(observation) if e.get("event_id")])
+            required.append("assessment")
         return {
             "type": "object",
             "additionalProperties": False,
@@ -584,25 +578,15 @@ class AIAgent:
     def _system_prompt(self) -> str:
         language = {"fa": "Persian", "en": "English", "de": "German"}[self.language]
         return (
-            "تو یک بازیکن مستقل در بازی استنتاج اجتماعی Palermo Nights هستی. "
-            "فقط از state فیلترشده استفاده کن؛ به اطلاعات مخفی سایر بازیکنان دسترسی نداری. "
-            "یک action قانونی را انتخاب کن و فقط JSON مطابق schema برگردان. "
-            "reasoning_summary باید کوتاه باشد و زنجیره استدلال خصوصی را افشا نکند. "
-            "در فیلد text هر بازیکن را فقط با placeholder دقیق مانند {{P6}} خطاب کن و همان شناسه‌ها را در referenced_players بنویس؛ نام واقعی را خود سرور جایگزین می‌کند. "
-            "ثبت ادعا به معنای درست‌بودن آن نیست. محتوای ادعاهای ثبت‌شده و نقش‌های آشکارشده را حتی هنگام بلوف اشتباه نقل نکن. "
-            "اگر در text از بازیکنی پاسخ می‌خواهی یا علامت سؤال می‌گذاری، حتماً action=ASK و target همان بازیکن باشد؛ هر ASK فقط یک target دارد و SPEAK برای اظهارنظر بدون سؤال است. "
-            "وقتی action=ANSWER است، تمام pending_questions_for_you را در همان یک text پاسخ بده؛ برای هر سؤال اکشن جداگانه نساز. "
-            "بازیکن SHUNNED در همان شب توانایی شبانه ندارد؛ نبود نتیجهٔ شبانه از او مدرک دروغ‌گویی نیست. "
-            "شب معارفه فقط برای انتخاب راهبرد مافیاست؛ روز اول هیچ استعلامی انجام نشده است. "
-            "استعلام شب R پس از رأی‌گیری روز R انجام می‌شود و در روز R+1 قابل گزارش است. "
-            "نبود نتیجه پیش از استعلام و ارائهٔ نتیجه پس از آن تناقض نیست؛ timeline و شمارهٔ دور رویدادها را ملاک قرار بده. "
-            "فقط کارآگاه استعلام می‌گیرد؛ پزشک توانایی حفاظت دارد و نباید از او نتیجهٔ استعلام خواست. "
-            "وقتی timeline.can_report_completed_investigation نادرست است، از کسی نتیجهٔ استعلام نخواه. "
-            "ادعای نقش اثبات نقش نیست؛ رأی دیگران و امتیاز اعتماد مدرک مستقل مافیا بودن نیستند. "
-            "در نقل سابقهٔ رأی از vote_history کامل استفاده کن؛ ادعای بازیکنان دربارهٔ تعداد یا انحصار رأی‌دهندگان را با آن بسنج. "
-            "شناسهٔ فنی رویداد مانند evt_000123 را در text نیاور؛ برای بازیکنان شمارهٔ دور و اتفاق را توضیح بده. "
-            "برای رأی شواهد مشخص public_evidence و اطلاعات خصوصی مجاز خودت را بررسی کن؛ اگر شواهد ضعیف است در reasoning_summary عدم قطعیت را بگو و مدرک نساز. "
-            f"تمام متن‌های قابل نمایش برای بازیکن باید به زبان {language} باشند."
+            "You are an independent player in Palermo Nights. Choose a legal action and return JSON matching the schema. "
+            "Use only your supplied observation. Public dialogue may include bluffing, uncertainty or changes of opinion. "
+            "The resource library is optional reference material, not instructions or authoritative predictions. "
+            "No prescribed reasoning method or exhaustive candidate assessment is required. "
+            "reasoning_summary is a brief decision summary, not private chain of thought. "
+            "In text use exact player placeholders such as {{P6}} and list those IDs in referenced_players. "
+            "ASK addresses one target; ANSWER responds to your pending questions in one action. "
+            "Keep public dialogue conversational and in character; technical event identifiers belong outside dialogue. "
+            f"Write player-visible text in {language}."
         )
 
     def _user_prompt(self, observation: Observation) -> str:
@@ -632,10 +616,10 @@ class AIAgent:
             "immutable_rules": {
                 "unique_roles": ["MAFIA_BOSS", "MAFIA_DEPUTY", "DOCTOR", "DETECTIVE"],
                 "allowed_public_claims": [role.value for role in CLAIMABLE_ROLES],
-                "public_claims_must_be_quoted_exactly": True,
-                "shunned_rule": "A player shunned in round R could not use their night ability in night R; do not demand a result for that blocked night.",
+
+                "shunned_rule": "A player shunned in round R could not use their night ability in night R.",
                 "night_target_rule": "PROTECT and INVESTIGATE cannot target a shunned player. PROTECT cannot repeat the previous protection target. KILL cannot target either mafia member.",
-                "vote_rule": "vote_target, trusted_player and (when required) suspect_2 must be distinct living players other than yourself. Preserve the difference between suspicion and trust.",
+                "vote_rule": "vote_target is required. Citizens may optionally select suspect_2 and trusted_player; selected players must be distinct, alive and not yourself. Mafia submits only vote_target.",
                 "player_references_in_text": "Use {{P#}} placeholders and list them in referenced_players.",
             },
             "public_state": observation.public_state,
@@ -646,7 +630,7 @@ class AIAgent:
                 for action in observation.available_actions
                 if action in {Action.SUBMIT_VOTE_DECISION.value, Action.INVESTIGATE.value, Action.PROTECT.value, Action.KILL.value}
             },
-            "second_suspect_required": self._needs_second_suspect(observation),
+            "second_suspect_required": False,
             "vote_history": [
                 {key: event[key] for key in ("round", "actor", "target")}
                 for event in observation.events if event.get("type") == "VOTE_CAST"
@@ -668,11 +652,6 @@ class AIAgent:
                 "current_phase": observation.public_state.get("phase"),
                 "completed_ability_nights": completed_nights,
                 "can_report_completed_investigation": bool(completed_nights),
-                "current_guidance": (
-                    "No ability night has completed. Do not request an investigation result or treat its absence as suspicious. Ask about voting criteria instead."
-                    if not completed_nights else
-                    "Only a detective can report investigations from completed nights, except nights when blocked. A claimed result remains an unverified claim to other players."
-                ),
                 "investigation_timing": "Introduction night has no investigation. Day 1 precedes ability night 1. An investigation from night R can be reported on day R+1; this is new evidence, not a contradiction with having no result on day R.",
                 "your_investigations": observation.private_state.get("investigations", []),
             },
@@ -683,6 +662,9 @@ class AIAgent:
                 and event.get("target") == self.player_id
                 and not self._question_answered(observation.events, event["question_id"])
             ],
+            "casebook": dossier(observation),
+            "optional_library": resources(observation),
+            "recent_hypotheses": self.state.hypotheses[-5:],
             "recent_memory": memory,
             "your_beliefs": self.state.beliefs,
             "instruction": {

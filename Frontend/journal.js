@@ -13,15 +13,6 @@ function journalText(key) {
   return (labels[state.lang] || labels.en)[key] || (extras[state.lang] || extras.en)[key];
 }
 
-function journalControls() {
-  const f = state.journalFilters;
-  const option = (value, label, selected) => `<option value="${escapeHTML(value)}"${String(value) === String(selected) ? " selected" : ""}>${escapeHTML(label)}</option>`;
-  const select = (key, label, values) => `<label>${journalText(label)}<select data-journal-filter="${key}">${option("", journalText("all"), f[key])}${values.map(([value, name]) => option(value, name, f[key])).join("")}</select></label>`;
-  const rounds = [...new Set(state.events.filter((e) => e.visibility === "PUBLIC").map((e) => e.round))].sort((a,b) => b-a);
-  const controls = `<div class="journal-filters">${select("round", "round", rounds.map((r)=>[String(r),String(r)]))}${select("player", "player", Object.keys(state.public.players || {}).map((id)=>[id,playerName(id)]))}${select("kind", "kind", ["discussion","votes","night"].map((key)=>[key,journalText(key)]))}</div>`;
-  return journalDisclosure("filters", journalText("filters"), controls, Object.values(f).some(Boolean));
-}
-
 function journalDisclosure(key, label, body, open = false) {
   return `<details class="journal-group" data-journal-key="${escapeHTML(key)}"${open ? " open" : ""}><summary>${escapeHTML(label)}</summary><div class="journal-body">${body}</div></details>`;
 }
@@ -31,8 +22,10 @@ function journalParagraph(value, kind = "") {
 }
 
 function journalOutcome(event, events) {
-  const will = events.find((item) => item.type === "WILL_REVEALED" && item.player === event.player && item.text?.trim());
-  return `<article class="journal-card">${journalParagraph(factEventText(event))}${will ? journalParagraph(`${journalText("will")}: ${will.text}`) : ""}</article>`;
+  const will = events.find((item) => item.type === "WILL_REVEALED" && item.player === event.player && (item.text?.trim() || Object.keys(item.trust || {}).length));
+  const trust = Object.entries(will?.trust || {}).sort((a,b) => b[1]-a[1]).map(([id, score]) => `<li>${profileImageMarkup(id)}<span>${escapeHTML(playerName(id))}</span><b>${score}</b></li>`).join("");
+  const note = state.lang === "fa" ? "آخرین برداشت بازیکن؛ نشان‌دهندهٔ نقش واقعی افراد نیست." : state.lang === "de" ? "Letzte Einschätzung des Spielers, keine bestätigten Rollen." : "The player's last assessment, not confirmed roles.";
+  return `<article class="journal-card">${journalParagraph(factEventText(event))}${will ? `<h5>${journalText("will")} — ${escapeHTML(playerName(event.player))}</h5>${will.text ? journalParagraph(will.text) : ""}${trust ? journalParagraph(note, "journal-muted") + `<ul class="will-trust">${trust}</ul>` : ""}` : ""}</article>`;
 }
 
 function journalVotes(events, round) {
@@ -42,7 +35,7 @@ function journalVotes(events, round) {
   votes.forEach((e) => tally.set(e.target, (tally.get(e.target) || 0) + 1));
   const complete = events.some((e) => ["NIGHT_STARTED", "GAME_OVER", "PLAYER_SHUNNED", "PLAYER_ELIMINATED", "VOTE_TIED"].includes(e.type));
   const counts = [...tally].sort((a, b) => b[1] - a[1]).map(([id, count]) => journalParagraph(`${playerName(id)}: ${count} ${journalText("count")}`)).join("");
-  const rows = votes.map((e) => `<tr><th scope="row">${escapeHTML(playerName(e.actor))}</th><td>${escapeHTML(playerName(e.target))}</td></tr>`).join("");
+  const rows = votes.map((e) => `<tr><th scope="row">${escapeHTML(playerName(e.actor))}</th><td>${escapeHTML(playerName(e.target))}${e.position?.reason ? `<small class="journal-muted">${escapeHTML(replacePlayerReferences(e.position.reason))}</small>` : ""}</td></tr>`).join("");
   const table = `<table class="journal-votes"><caption>${journalText("votes")} — ${journalText("day")} ${round}</caption><thead><tr><th scope="col">${journalText("voter")}</th><th scope="col">${journalText("target")}</th></tr></thead><tbody>${rows}</tbody></table>`;
   const results = events.filter((e) => ["PLAYER_SHUNNED", "PLAYER_ELIMINATED"].includes(e.type) && e.phase !== "NIGHT_ACTION");
   return `<section class="journal-card"><h4>${journalText("votes")}</h4>${complete ? "" : journalParagraph(journalText("pending"), "journal-muted")}${results.map((e) => journalOutcome(e, events)).join("")}${complete && !results.length ? journalParagraph(text("tied")) : ""}${journalDisclosure(`votes-${round}`, journalText("detail"), counts + table)}</section>`;
@@ -75,29 +68,22 @@ function journalNight(events, round) {
   const result = events.find((e) => e.type === "NIGHT_RESULT");
   if (!result && !events.some((e) => e.type === "NIGHT_STARTED")) return "";
   const blocks = events.filter((e) => e.type === "PLAYER_SHUNNED").map((e) => journalParagraph(`${playerName(e.player)} — ${journalText("rule")}`, "journal-rule")).join("");
-  const outcome = result ? journalParagraph(factEventText(result)) : journalParagraph(journalText("noResult"));
+  const outcome = result ? (result.player ? journalOutcome(result, events) : journalParagraph(factEventText(result))) : journalParagraph(journalText("noResult"));
   let body = blocks;
   if (state.public.phase === "GAME_OVER") {
     const replay = (state.nightReplay || []).find((n) => n.round === round);
     if (replay) {
       const reasons = { PROTECTED: "protected", KILLED: "killed", ATTACKER_BLOCKED: "blocked", NO_ACTIVE_ATTACKER: "noAttacker", NO_ATTACK: "noAttack" };
       body += `<div class="journal-replay"><small>${journalText("replay")}</small>${journalParagraph(journalText(reasons[replay.reason] || "unavailable"))}${journalParagraph(`${journalText("attack")}: ${replay.attack_target ? playerName(replay.attack_target) : journalText("none")}`)}${journalParagraph(`${journalText("protection")}: ${replay.protected_target ? playerName(replay.protected_target) : journalText("none")}`)}</div>`;
-    } else if (result?.result === "NO_DEATH") body += journalParagraph(journalText("unavailable"), "journal-muted");
+    } else if (result) body += journalParagraph(journalText("unavailable"), "journal-muted");
   } else if (result?.result === "NO_DEATH") body += journalParagraph(journalText("unknown"), "journal-muted");
   return `<section class="journal-night"><h4>${journalText("night")} ${round}</h4>${outcome}${body ? journalDisclosure(`night-${round}`, journalText("nightDetails"), body) : ""}</section>`;
 }
 
 function renderJournal(includeDiscussion = true) {
   const events = state.events.filter((e) => e.visibility === "PUBLIC");
-  const filters = includeDiscussion ? state.journalFilters : { player: "", round: "", kind: "" };
-  const types = { discussion: ["PLAYER_SPOKE", "PLAYER_ASKED", "PLAYER_ANSWERED"], votes: ["VOTE_CAST", "PLAYER_ELIMINATED", "PLAYER_SHUNNED"], night: ["NIGHT_RESULT", "NIGHT_STARTED", "PLAYER_SHUNNED"] };
-  const matches = events.filter((e) => {
-    if (filters.round && String(e.round) !== filters.round) return false;
-    if (filters.kind && !types[filters.kind]?.includes(e.type)) return false;
-    const summary = eventSummary(e).toLocaleLowerCase();
-    if (filters.player && ![e.actor,e.target,e.player,...(e.targets || [])].includes(filters.player) && !summary.includes(playerName(filters.player).toLocaleLowerCase())) return false;
-    return true;
-  });
+  const filters = { kind: "" };
+  const matches = events;
   const rounds = [...new Set(matches.map((e) => e.round).filter(Boolean))].sort((a, b) => b - a);
   return rounds.map((round, index) => {
     const items = events.filter((e) => e.round === round);

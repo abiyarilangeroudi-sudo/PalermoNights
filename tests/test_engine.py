@@ -238,7 +238,7 @@ class EngineTestCase(unittest.TestCase):
             )
         self.assertIsNone(self.game.shunned_player)
         self.assertEqual(self.game.phase, Phase.NIGHT_ACTION)
-        self.assertEqual(self.game.players["P1"].trust["P4"], before - 15)
+        self.assertEqual(self.game.players["P1"].trust["P4"], before)  # Mafia has no trust ballot.
 
     def test_deputy_takes_over_kill_when_boss_is_dead(self) -> None:
         self.game.phase = Phase.NIGHT_ACTION

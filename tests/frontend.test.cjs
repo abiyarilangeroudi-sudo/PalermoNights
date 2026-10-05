@@ -229,7 +229,7 @@ function harness(storage = new Map()) {
   const nodes = new Map();
   const element = (selector) => {
     if (!nodes.has(selector)) nodes.set(selector, {
-      innerHTML: '', textContent: '', value: '', disabled: false, dataset: {}, handlers: {},
+      innerHTML: '', textContent: '', value: '', disabled: false, dataset: {}, handlers: {}, options: [], dispatchEvent(){},
       classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } },
       addEventListener(name, fn) { this.handlers[name] = fn; },
       setAttribute(){}, removeAttribute(){}, focus(){},
@@ -238,7 +238,7 @@ function harness(storage = new Map()) {
     return nodes.get(selector);
   };
   const claim = element('claim'); claim.dataset.claim = 'CITIZEN';
-  const context = vm.createContext({
+  const context = vm.createContext({ AbortController, Event,
     assert, console, setTimeout, clearTimeout,
     localStorage: {
       getItem: key => storage.get(key) ?? null,
@@ -474,7 +474,7 @@ test('expired sessions are cleared, temporary connection failures remain retryab
   `);
 });
 
-test('journal filters preserve complete vote context and exclude private matches', async () => {
+test('journal ignores obsolete filters, preserves all public rounds and excludes private events', async () => {
   await harness().run(`
     const base={visibility:'PUBLIC',round:1};
     state.events=[{...base,type:'VOTE_CAST',actor:'P1',target:'P3'},
@@ -485,13 +485,13 @@ test('journal filters preserve complete vote context and exclude private matches
     state.journalFilters={query:'',round:'',player:'P1',kind:'votes'};
     let html=renderJournal();
     assert.equal((html.match(/<tr>/g)||[]).length,3);
-    assert.ok(!html.includes('needle'));
+    assert.ok(html.includes('needle'));
     state.journalFilters={round:'1',player:'',kind:''};
     html=renderJournal();
     assert.ok(html.includes('round-1'));
-    assert.ok(!html.includes('round-2') && !html.includes('round-3'));
-    assert.ok(!journalControls().includes('type="search"'));
-    assert.ok(!journalControls().includes('data-journal-filter="query"'));
+    assert.ok(html.includes('round-2') && !html.includes('round-3'));
+    assert.ok(!renderTimeline().includes('journal-filters'));
+    assert.ok(!renderTimeline().includes('data-journal-filter'));
   `);
 });
 
@@ -539,5 +539,29 @@ test('late network responses cannot overwrite an opened archive of the same game
     release(); await pending;
     assert.equal(state.public.phase,'GAME_OVER');
     assert.equal(state.stage,'game_over'); assert.equal(state.availableActions.length,0);
+  `);
+});
+
+test('declared position and vote explanation are visible with escaped text', async()=>{
+  await harness().run(`
+    state.lang='fa';
+    const event={type:'PLAYER_SPOKE',actor:'P3',text:'گفتهٔ کوتاه',position:{target:'P4',reason:'شاهد تازه'}};
+    assert.ok(eventDialogue(event).includes('Marco Conti'));
+    assert.ok(eventSummary(event).includes('مظنون اعلام‌شده'));
+    const html=journalVotes([{type:'VOTE_CAST',actor:'P3',target:'P4',round:2,position:{reason:'<script>bad</script>'}}],2);
+    assert.ok(!html.includes('<script>') && html.includes('&lt;script&gt;'));
+  `);
+});
+
+test('postgame night review opens the existing journal and keeps missing old causes explicit', async()=>{
+  await harness().run(`
+    state.lang='fa'; state.public.phase='GAME_OVER';
+    showGameOver();
+    assert.ok($('#story-content').innerHTML.includes('review-nights'));
+    $('#review-nights').handlers.click();
+    assert.equal(state.consoleTab,'timeline'); assert.equal(state.journalFilters.kind,'');
+    state.nightReplay=[];
+    const html=journalNight([{type:'NIGHT_RESULT',result:'PLAYER_KILLED',player:'P2',round:2}],2);
+    assert.ok(html.includes('نسخهٔ قدیمی'));
   `);
 });

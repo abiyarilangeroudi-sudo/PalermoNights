@@ -13,3 +13,14 @@ build/
 audit/**/*.jsonl
 audit/**/*.jpg
 audit/**/*.png
+
+.palermo-data/
+node_modules/
+playwright-report/
+test-results/
+
+.wrangler/
+python_modules/
+
+.worker-build/
+.venv-workers/

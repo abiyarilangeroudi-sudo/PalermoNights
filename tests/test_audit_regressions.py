@@ -116,7 +116,7 @@ def test_ai_only_cancel_requires_separate_control_token():
         run.status = "RUNNING"
         await asyncio.Event().wait()
 
-    with patch("app.main.execute_run", paused_run), TestClient(app) as client:
+    with patch("app.runtime.execute_run", paused_run), TestClient(app) as client:
         created = client.post("/games/ai", json={"mode": "offline"}).json()
         path = f"/game/{created['game_id']}/run/cancel"
         assert client.post(path).status_code == 401

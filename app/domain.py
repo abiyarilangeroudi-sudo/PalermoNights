@@ -117,7 +117,7 @@ class Question:
 @dataclass(slots=True)
 class VoteDecision:
     vote_target: str
-    trusted_player: str
+    trusted_player: str | None = None
     suspect_2: str | None = None
 
 

@@ -174,7 +174,7 @@ const copy = {
     trueRole: "نقش واقعی", revealedRole: "نقش آشکارشده", trust: "اعتماد", investigations: "تحقیقات", previousProtection: "محافظت شب قبل",
     noInvestigation: "هنوز تحقیقی ثبت نشده است.", legalActions: "انتخاب‌های مجاز اکنون", discussionOrder: "ترتیب گفتگو", notesPlaceholder: "تحلیل‌ها و سرنخ‌های خودت را اینجا بنویس…", suspicionBoard: "درجه سوءظن شخصی",
     ask: "پرسیدن سؤال", askTarget: "سؤال از", questionFrom: "سؤال از طرف", choosePlayer: "یک نفر را انتخاب کن",
-    voteTarget: "مظنون اصلی و رأی تو", trustedPlayer: "قابل‌اعتمادترین فرد", secondSuspect: "مظنون دوم", confirmVote: "ثبت تصمیم رأی", voteHelp: "رأی، فرد قابل‌اعتماد و—تا وقتی هر دو مافیا زنده‌اند—مظنون دوم را مشخص کن.",
+    voteTarget: "مظنون اصلی و رأی تو", trustedPlayer: "قابل‌اعتمادترین فرد", secondSuspect: "مظنون دوم", confirmVote: "ثبت تصمیم رأی", voteHelp: "رأی را انتخاب کن؛ گزینه‌های دیگر برای شهروندان اختیاری‌اند.",
     strategyTitle: "استراتژی مافیا را تعیین کن", strategyText: "این تصمیم محرمانه است و مسیر استدلال مافیا را در طول بازی هدایت می‌کند.", chooseStrategy: "ثبت استراتژی",
     strategies: { ROLE_CLAIM_ATTACK: "حمله به ادعاها", CREATE_TWO_SIDES: "ساختن دو جبهه", FOLLOW_CITIZEN_ERROR_WAVE: "دنبال‌کردن خطای شهر", USE_CONTRADICTION: "استفاده از تناقض‌ها" },
     close: "بستن",
@@ -271,7 +271,7 @@ const copy = {
     trueRole: "True role", revealedRole: "Revealed role", trust: "Trust", investigations: "Investigations", previousProtection: "Previous protection",
     noInvestigation: "No investigation has been recorded yet.", legalActions: "Available actions now", discussionOrder: "Discussion order", notesPlaceholder: "Write your own analysis and clues here…", suspicionBoard: "Personal suspicion board",
     ask: "ASK A QUESTION", askTarget: "Ask", questionFrom: "Question from", choosePlayer: "Choose a player",
-    voteTarget: "Primary suspect and vote", trustedPlayer: "Most trusted player", secondSuspect: "Second suspect", confirmVote: "SUBMIT VOTE DECISION", voteHelp: "Choose your vote, most trusted player, and—while both Mafia are alive—a second suspect.",
+    voteTarget: "Primary suspect and vote", trustedPlayer: "Most trusted player", secondSuspect: "Second suspect", confirmVote: "SUBMIT VOTE DECISION", voteHelp: "Choose your vote; additional citizen selections are optional.",
     strategyTitle: "Choose the Mafia strategy", strategyText: "This choice is confidential and guides the Mafia's reasoning throughout the game.", chooseStrategy: "CONFIRM STRATEGY",
     strategies: { ROLE_CLAIM_ATTACK: "Attack role claims", CREATE_TWO_SIDES: "Create two sides", FOLLOW_CITIZEN_ERROR_WAVE: "Follow the town's error wave", USE_CONTRADICTION: "Exploit contradictions" },
     close: "Close",
@@ -368,7 +368,7 @@ const copy = {
     trueRole: "Wahre Rolle", revealedRole: "Enthüllte Rolle", trust: "Vertrauen", investigations: "Ermittlungen", previousProtection: "Letzter Schutz",
     noInvestigation: "Noch keine Ermittlung vorhanden.", legalActions: "Jetzt verfügbare Aktionen", discussionOrder: "Gesprächsreihenfolge", notesPlaceholder: "Schreibe hier deine Analyse und Hinweise…", suspicionBoard: "Persönliche Verdachtsliste",
     ask: "FRAGE STELLEN", askTarget: "Frage an", questionFrom: "Frage von", choosePlayer: "Person wählen",
-    voteTarget: "Hauptverdacht und Stimme", trustedPlayer: "Vertrauenswürdigste Person", secondSuspect: "Zweiter Verdacht", confirmVote: "WAHLENTSCHEIDUNG SENDEN", voteHelp: "Wähle Stimme, Vertrauensperson und—solange beide Mafiosi leben—einen zweiten Verdacht.",
+    voteTarget: "Hauptverdacht und Stimme", trustedPlayer: "Vertrauenswürdigste Person", secondSuspect: "Zweiter Verdacht", confirmVote: "WAHLENTSCHEIDUNG SENDEN", voteHelp: "Wähle deine Stimme; weitere Angaben sind freiwillig.",
     strategyTitle: "Mafia-Strategie wählen", strategyText: "Diese Wahl ist vertraulich und lenkt die Überlegungen der Mafia im Spiel.", chooseStrategy: "STRATEGIE BESTÄTIGEN",
     strategies: { ROLE_CLAIM_ATTACK: "Rollenbehauptungen angreifen", CREATE_TWO_SIDES: "Zwei Lager bilden", FOLLOW_CITIZEN_ERROR_WAVE: "Fehlerwelle der Stadt nutzen", USE_CONTRADICTION: "Widersprüche ausnutzen" },
     close: "Schließen",
@@ -399,10 +399,10 @@ const tutorialGuide = {
       ["2. Roles in the city", `<p>Roles are assigned randomly and remain secret until a player is eliminated.</p><div class="tutorial-role-grid"><div class="tutorial-role"><b>Mafia Boss × 1</b><p>Knows the Deputy, chooses the Mafia's night target, and must hide among the city.</p></div><div class="tutorial-role"><b>Mafia Deputy × 1</b><p>Knows the Boss. If the Boss is eliminated, the Deputy takes command of future night attacks.</p></div><div class="tutorial-role"><b>Doctor × 1</b><p>Protects one living player each night, including themself. The same target cannot be protected on two consecutive nights.</p></div><div class="tutorial-role"><b>Detective × 1</b><p>Investigates one living player each night and privately learns that player's exact role.</p></div><div class="tutorial-role"><b>Citizens × 3</b><p>Have no night ability. Their power is observation, discussion, questioning, and voting.</p></div></div>`],
       ["3. Hidden identity and public claims", `<p>After seeing your true role, you publicly claim to be a <strong>Citizen, Doctor, or Detective</strong>. Anyone—including Mafia—may lie. Mafia roles can never be claimed directly.</p><p>A claim is not proof. Compare it with later statements, votes, night results, and contradictions.</p>`],
       ["4. Day discussion", `<ol><li>Living players speak in a random order.</li><li>On your turn you may make a statement, ask another living player a question, or remain silent.</li><li>Questions must be answered before voting begins.</li><li>Use <strong>@</strong> while writing to select a character accurately.</li></ol><p>The event journal records public facts and your own private information. Other players' hidden roles and private clues are never shown to you.</p>`],
-      ["5. Voting and the special first day", `<p>Every living player submits a main vote and names the person they trust most. While both Mafia members are alive, a second suspect must also be selected. You cannot select yourself, and the chosen people must be different.</p><ul><li><strong>Day 1:</strong> the top-voted player is shunned, not eliminated. That player cannot use a night ability; the Doctor and Detective also cannot target them that night. The shun ends in the morning.</li><li><strong>Day 2 and later:</strong> the top-voted player is eliminated. Their true role—and any recorded last will—is revealed.</li><li><strong>Tie:</strong> nobody is punished or eliminated.</li></ul>`],
+      ["5. Voting and the special first day", `<p>Each living player submits a vote. Citizens may optionally choose a second suspect and a trusted player after selecting their vote. Mafia has no optional trust selections. All selected players must be distinct and cannot be yourself.</p><ul><li><strong>Day 1:</strong> the top-voted player is shunned, not eliminated. That player cannot use a night ability; the Doctor and Detective also cannot target them that night. The shun ends in the morning.</li><li><strong>Day 2 and later:</strong> the top-voted player is eliminated. Their true role—and any recorded last will—is revealed.</li><li><strong>Tie:</strong> nobody is punished or eliminated.</li></ul>`],
       ["6. Night", `<p>Night abilities resolve together:</p><ul><li>The active Mafia leader attacks one Citizen.</li><li>The Doctor protects one eligible player. If that person is attacked, nobody dies.</li><li>The Detective investigates one eligible player and receives a private result.</li><li>Citizens wait for morning.</li></ul><p>If the Boss is dead, the Deputy becomes the active attacker. In the morning, the city learns whether someone died and sees the victim's true role.</p>`],
       ["7. Elimination and the end of the game", `<p>Eliminated players no longer speak, vote, or act at night. The game checks victory immediately after every elimination and night resolution.</p><div class="tutorial-note"><strong>Citizens win:</strong> both Mafia members are eliminated.<br><strong>Mafia wins:</strong> living Mafia reaches parity with living Citizens—for example, two Mafia against two Citizens.</div>`],
-      ["8. Beginner strategy", `<ul><li>Do not trust a role claim by itself; track whether actions and explanations remain consistent.</li><li>Ask direct questions and remember who avoids answering.</li><li>Use the trusted-player and second-suspect choices as real information about alliances.</li><li>If you have a special role, revealing it too early may make you a Mafia target; waiting too long may waste your information.</li><li>Keep private notes in the journal and separate confirmed facts from theories.</li></ul>`],
+      ["8. Beginner strategy", `<ul><li>Do not trust a role claim by itself; track whether actions and explanations remain consistent.</li><li>Ask direct questions and remember who avoids answering.</li><li>Use the trusted-player and second-suspect choices as real information about alliances.</li><li>If you have a special role, revealing it too early may make you a Mafia target; waiting too long may waste your information.</li><li>Review previous conversations and votes in the journal.</li></ul>`],
     ],
     back: "BACK TO HOME",
     start: "START A NEW GAME",
@@ -417,10 +417,10 @@ const tutorialGuide = {
       ["2. Rollen in der Stadt", `<p>Die Rollen werden zufällig verteilt und bleiben bis zur Eliminierung geheim.</p><div class="tutorial-role-grid"><div class="tutorial-role"><b>Mafia-Boss × 1</b><p>Kennt den Stellvertreter, wählt nachts das Angriffsziel und muss seine Identität verbergen.</p></div><div class="tutorial-role"><b>Mafia-Stellvertreter × 1</b><p>Kennt den Boss und übernimmt nach dessen Eliminierung die Nachtangriffe.</p></div><div class="tutorial-role"><b>Arzt × 1</b><p>Schützt jede Nacht eine lebende Person, auch sich selbst. Dieselbe Person darf nicht in zwei aufeinanderfolgenden Nächten geschützt werden.</p></div><div class="tutorial-role"><b>Detektiv × 1</b><p>Untersucht jede Nacht eine lebende Person und erfährt heimlich deren genaue Rolle.</p></div><div class="tutorial-role"><b>Bürger × 3</b><p>Haben keine Nachtfähigkeit. Ihre Stärke sind Beobachtung, Diskussion, Fragen und Abstimmung.</p></div></div>`],
       ["3. Geheime Identität und öffentliche Behauptung", `<p>Nachdem du deine echte Rolle gesehen hast, behauptest du öffentlich, <strong>Bürger, Arzt oder Detektiv</strong> zu sein. Jeder darf lügen—auch die Mafia. Mafia-Rollen können nie direkt behauptet werden.</p><p>Eine Behauptung ist kein Beweis. Vergleiche sie mit späteren Aussagen, Stimmen, Nachtresultaten und Widersprüchen.</p>`],
       ["4. Diskussion am Tag", `<ol><li>Die lebenden Spieler sprechen in zufälliger Reihenfolge.</li><li>Du kannst in deinem Zug etwas sagen, einer lebenden Person eine Frage stellen oder schweigen.</li><li>Alle Fragen müssen vor der Abstimmung beantwortet werden.</li><li>Tippe beim Schreiben <strong>@</strong>, um eine Figur eindeutig auszuwählen.</li></ol><p>Das Ereignisprotokoll enthält öffentliche Fakten und deine eigenen geheimen Informationen. Verborgene Rollen und private Hinweise anderer Spieler bleiben unsichtbar.</p>`],
-      ["5. Abstimmung und der besondere erste Tag", `<p>Jeder lebende Spieler gibt eine Hauptstimme ab und nennt seine vertrauenswürdigste Person. Solange beide Mafiosi leben, muss zusätzlich ein zweiter Verdacht gewählt werden. Du darfst dich nicht selbst wählen; alle ausgewählten Personen müssen verschieden sein.</p><ul><li><strong>Tag 1:</strong> Die Person mit den meisten Stimmen wird geächtet, nicht eliminiert. Sie kann nachts keine Fähigkeit einsetzen; Arzt und Detektiv können sie in dieser Nacht ebenfalls nicht als Ziel wählen. Am Morgen endet die Ächtung.</li><li><strong>Ab Tag 2:</strong> Die Person mit den meisten Stimmen wird eliminiert. Ihre echte Rolle und ein vorhandenes Testament werden enthüllt.</li><li><strong>Gleichstand:</strong> Niemand wird bestraft oder eliminiert.</li></ul>`],
+      ["5. Abstimmung und der besondere erste Tag", `<p>Jeder lebende Spieler stimmt ab. Bürger können danach freiwillig einen zweiten Verdacht und eine Vertrauensperson wählen. Für die Mafia entfallen diese Angaben. Alle gewählten Personen müssen verschieden sein; Selbstwahl ist ausgeschlossen.</p><ul><li><strong>Tag 1:</strong> Die Person mit den meisten Stimmen wird geächtet, nicht eliminiert. Sie kann nachts keine Fähigkeit einsetzen; Arzt und Detektiv können sie in dieser Nacht ebenfalls nicht als Ziel wählen. Am Morgen endet die Ächtung.</li><li><strong>Ab Tag 2:</strong> Die Person mit den meisten Stimmen wird eliminiert. Ihre echte Rolle und ein vorhandenes Testament werden enthüllt.</li><li><strong>Gleichstand:</strong> Niemand wird bestraft oder eliminiert.</li></ul>`],
       ["6. Nacht", `<p>Alle Nachtfähigkeiten werden gemeinsam ausgewertet:</p><ul><li>Der aktive Mafia-Anführer greift einen Bürger an.</li><li>Der Arzt schützt eine erlaubte Person. Wird sie angegriffen, stirbt niemand.</li><li>Der Detektiv untersucht eine erlaubte Person und erhält das Ergebnis privat.</li><li>Die Bürger warten auf den Morgen.</li></ul><p>Ist der Boss tot, übernimmt der Stellvertreter den Angriff. Am Morgen erfährt die Stadt, ob jemand gestorben ist, und sieht die wahre Rolle des Opfers.</p>`],
       ["7. Eliminierung und Spielende", `<p>Eliminierte Spieler dürfen nicht mehr reden, abstimmen oder nachts handeln. Nach jeder Eliminierung und jeder Nacht wird sofort geprüft, ob eine Fraktion gewonnen hat.</p><div class="tutorial-note"><strong>Die Bürger gewinnen:</strong> Beide Mafiosi sind eliminiert.<br><strong>Die Mafia gewinnt:</strong> Es leben gleich viele Mafiosi wie Bürger—zum Beispiel zwei Mafiosi gegen zwei Bürger.</div>`],
-      ["8. Tipps für Einsteiger", `<ul><li>Vertraue keiner Rollenbehauptung allein; prüfe, ob Aussagen und Handlungen zusammenpassen.</li><li>Stelle direkte Fragen und merke dir, wer Antworten vermeidet.</li><li>Behandle Vertrauensperson und zweiten Verdacht als echte Hinweise auf Bündnisse.</li><li>Mit einer Spezialrolle macht dich ein zu frühes Geständnis zum Ziel; zu langes Schweigen kann deine Informationen wertlos machen.</li><li>Nutze private Notizen und trenne bestätigte Fakten von Vermutungen.</li></ul>`],
+      ["8. Tipps für Einsteiger", `<ul><li>Vertraue keiner Rollenbehauptung allein; prüfe, ob Aussagen und Handlungen zusammenpassen.</li><li>Stelle direkte Fragen und merke dir, wer Antworten vermeidet.</li><li>Behandle Vertrauensperson und zweiten Verdacht als echte Hinweise auf Bündnisse.</li><li>Mit einer Spezialrolle macht dich ein zu frühes Geständnis zum Ziel; zu langes Schweigen kann deine Informationen wertlos machen.</li><li>Lies frühere Gespräche und Stimmen im Journal nach.</li></ul>`],
     ],
     back: "ZURÜCK ZUM START",
     start: "NEUES SPIEL STARTEN",
@@ -435,10 +435,10 @@ const tutorialGuide = {
       ["۲. نقش‌های شهر", `<p>نقش‌ها به‌صورت تصادفی تقسیم می‌شوند و تا زمان حذف بازیکن مخفی می‌مانند.</p><div class="tutorial-role-grid"><div class="tutorial-role"><b>رئیس مافیا × ۱</b><p>معاون را می‌شناسد، هدف حمله شبانه را انتخاب می‌کند و باید هویتش را از شهر پنهان کند.</p></div><div class="tutorial-role"><b>معاون مافیا × ۱</b><p>رئیس را می‌شناسد و اگر رئیس حذف شود، فرمان حمله‌های شبانه را در دست می‌گیرد.</p></div><div class="tutorial-role"><b>پزشک × ۱</b><p>هر شب از یک بازیکن زنده، حتی خودش، محافظت می‌کند. نمی‌تواند دو شب پیاپی از یک نفر محافظت کند.</p></div><div class="tutorial-role"><b>کارآگاه × ۱</b><p>هر شب یک بازیکن زنده را بررسی می‌کند و نقش دقیق او را به‌صورت محرمانه می‌فهمد.</p></div><div class="tutorial-role"><b>شهروند × ۳</b><p>توانایی شبانه ندارند؛ قدرتشان در مشاهده، بحث، سؤال و رأی‌دادن است.</p></div></div>`],
       ["۳. هویت مخفی و ادعای عمومی", `<p>پس از دیدن نقش واقعی، باید در برابر شهر ادعا کنی که <strong>شهروند، پزشک یا کارآگاه</strong> هستی. همه—از جمله مافیا—اجازه دارند دروغ بگویند. نمی‌توان مستقیماً ادعای نقش مافیا کرد.</p><p>ادعا مدرک نیست. آن را با گفته‌های بعدی، رأی‌ها، نتیجه شب و تناقض‌های رفتاری مقایسه کن.</p>`],
       ["۴. گفت‌وگوی روز", `<ol><li>بازیکنان زنده با ترتیبی تصادفی صحبت می‌کنند.</li><li>در نوبت خود می‌توانی تحلیل یا اتهام بنویسی، از یک بازیکن زنده سؤال بپرسی یا سکوت کنی.</li><li>پیش از رأی‌گیری، تمام سؤال‌ها باید پاسخ داده شوند.</li><li>هنگام نوشتن از علامت <strong>@</strong> برای انتخاب دقیق شخصیت استفاده کن.</li></ol><p>دفتر وقایع، واقعیت‌های عمومی و اطلاعات محرمانه خودت را ثبت می‌کند. نقش‌ها و سرنخ‌های خصوصی دیگران هرگز به تو نمایش داده نمی‌شوند.</p>`],
-      ["۵. رأی‌گیری و قانون ویژه روز اول", `<p>هر بازیکن زنده یک رأی اصلی ثبت می‌کند و قابل‌اعتمادترین فرد را نیز مشخص می‌کند. تا زمانی که هر دو عضو مافیا زنده‌اند، انتخاب مظنون دوم هم اجباری است. نمی‌توانی خودت را انتخاب کنی و گزینه‌ها باید افراد متفاوتی باشند.</p><ul><li><strong>روز اول:</strong> فرد دارای بیشترین رأی حذف نمی‌شود، بلکه برای یک شب محروم می‌شود. او نمی‌تواند از توانایی شبانه استفاده کند و پزشک و کارآگاه هم نمی‌توانند آن شب او را هدف بگیرند. محرومیت صبح پایان می‌یابد.</li><li><strong>از روز دوم:</strong> فرد دارای بیشترین رأی حذف می‌شود و نقش واقعی و وصیت ثبت‌شده‌اش آشکار می‌شود.</li><li><strong>تساوی آرا:</strong> هیچ‌کس مجازات یا حذف نمی‌شود.</li></ul>`],
+      ["۵. رأی‌گیری و قانون ویژه روز اول", `<p>هر بازیکن زنده یک رأی اصلی ثبت می‌کند. شهروندان می‌توانند پس از انتخاب هدف رأی، مظنون دوم و فرد قابل‌اعتماد را به‌صورت اختیاری مشخص کنند. این دو گزینه برای مافیا وجود ندارند. نمی‌توانی خودت را انتخاب کنی و گزینه‌ها باید افراد متفاوتی باشند.</p><ul><li><strong>روز اول:</strong> فرد دارای بیشترین رأی حذف نمی‌شود، بلکه برای یک شب محروم می‌شود. او نمی‌تواند از توانایی شبانه استفاده کند و پزشک و کارآگاه هم نمی‌توانند آن شب او را هدف بگیرند. محرومیت صبح پایان می‌یابد.</li><li><strong>از روز دوم:</strong> فرد دارای بیشترین رأی حذف می‌شود و نقش واقعی و وصیت ثبت‌شده‌اش آشکار می‌شود.</li><li><strong>تساوی آرا:</strong> هیچ‌کس مجازات یا حذف نمی‌شود.</li></ul>`],
       ["۶. شب", `<p>توانایی‌های شبانه با هم محاسبه می‌شوند:</p><ul><li>فرمانده فعال مافیا به یک شهروند حمله می‌کند.</li><li>پزشک از یک هدف مجاز محافظت می‌کند؛ اگر همان فرد هدف حمله باشد، کسی کشته نمی‌شود.</li><li>کارآگاه یک هدف مجاز را بررسی می‌کند و نتیجه را فقط خودش می‌بیند.</li><li>شهروندان تا صبح منتظر می‌مانند.</li></ul><p>اگر رئیس مافیا مرده باشد، معاون حمله را انجام می‌دهد. صبح، شهر می‌فهمد آیا کسی کشته شده و نقش واقعی قربانی را می‌بیند.</p>`],
       ["۷. حذف و پایان بازی", `<p>بازیکن حذف‌شده دیگر حق صحبت، رأی یا اقدام شبانه ندارد. پس از هر حذف و پایان هر شب، شرط پیروزی فوراً بررسی می‌شود.</p><div class="tutorial-note"><strong>پیروزی شهروندان:</strong> هر دو عضو مافیا حذف شوند.<br><strong>پیروزی مافیا:</strong> تعداد مافیای زنده با شهروندان زنده برابر شود؛ مثلاً دو مافیا در برابر دو شهروند.</div>`],
-      ["۸. راهبردهای ساده برای شروع", `<ul><li>فقط به ادعای نقش اعتماد نکن؛ هماهنگی حرف‌ها و رفتارها را دنبال کن.</li><li>سؤال مستقیم بپرس و به کسانی که از پاسخ فرار می‌کنند توجه کن.</li><li>انتخاب فرد قابل‌اعتماد و مظنون دوم را سرنخی درباره اتحادها بدان.</li><li>اگر نقش ویژه داری، افشای خیلی زود تو را هدف مافیا می‌کند؛ سکوت طولانی هم ممکن است اطلاعاتت را بی‌فایده کند.</li><li>در دفتر وقایع یادداشت خصوصی بنویس و واقعیت قطعی را از حدس جدا نگه دار.</li></ul>`],
+      ["۸. راهبردهای ساده برای شروع", `<ul><li>فقط به ادعای نقش اعتماد نکن؛ هماهنگی حرف‌ها و رفتارها را دنبال کن.</li><li>سؤال مستقیم بپرس و به کسانی که از پاسخ فرار می‌کنند توجه کن.</li><li>انتخاب فرد قابل‌اعتماد و مظنون دوم را سرنخی درباره اتحادها بدان.</li><li>اگر نقش ویژه داری، افشای خیلی زود تو را هدف مافیا می‌کند؛ سکوت طولانی هم ممکن است اطلاعاتت را بی‌فایده کند.</li><li>در دفتر وقایع، گفتگوها و رأی‌های قبلی را مرور کن.</li></ul>`],
     ],
     back: "بازگشت به خانه",
     start: "شروع بازی جدید",
@@ -473,6 +473,8 @@ const state = {
   currentEventId: null,
   currentResultId: null,
   acknowledgedResults: new Set(),
+  drafts: {},
+  pendingAction: null,
 };
 
 let typingVersion = 0;
@@ -483,6 +485,57 @@ let syncNeedsRoute = false;
 let syncTimer = null;
 let actionInFlight = false;
 const SESSION_KEY = "palermo-active-session-v1";
+let recoveryTimer = null;
+let recoveryDelay = 1000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  let timer;
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => { controller.abort(); reject(new Error("request_timeout")); }, timeoutMs);
+  });
+  try {
+    return await Promise.race([(async () => {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      // Read the body inside the same deadline; headers alone are not completion.
+      const raw = typeof response.text === "function" ? await response.text() : JSON.stringify(await response.json?.() ?? {});
+      return { ok: response.ok, status: response.status,
+        json: async () => JSON.parse(raw), text: async () => raw };
+    })(), deadline]);
+  } finally { clearTimeout(timer); }
+}
+
+function scheduleRecovery() {
+  if (!state.gameId || state.archiveMode || state.stage === "home" || recoveryTimer) return;
+  $("#connection-state").classList.add("offline");
+  recoveryTimer = window.setTimeout(async () => {
+    recoveryTimer = null;
+    try {
+      await syncState(true);
+      if (state.stage === "connection_error") {
+        restoreStory(readStored(SESSION_KEY, {})?.stage || "play");
+        connectStream(`/game/${state.gameId}/stream`);
+      }
+    }
+    catch (error) {
+      if ([401, 404].includes(error.status)) {
+        clearSession(); state.eventSource?.close();
+        state.gameId = null; state.token = null; state.stage = "home";
+        refreshResumeControls(); showScreen("home"); toast(text("sessionExpired"));
+      } else { recoveryDelay = Math.min(recoveryDelay * 2, 15000); scheduleRecovery(); }
+    }
+  }, recoveryDelay);
+}
+
+function draftKey(kind = state.stage) {
+  const previous = kind === "human_discussion" ? state.events.filter(e =>
+    e.actor === state.playerId && ["PLAYER_SPOKE", "PLAYER_ANSWERED", "PLAYER_ASKED"].includes(e.type)).at(-1)?.event_id || "start" : "";
+  return `${state.public?.round || 1}:${kind}:${previous}`;
+}
+function saveDraft(kind, values) {
+  state.drafts[draftKey(kind)] = values;
+  saveSession();
+}
 
 function readStored(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
@@ -494,6 +547,7 @@ function saveSession() {
   const session = Object.fromEntries([
     "gameId", "playerId", "token", "characterId", "lang", "stage", "narrativeRound",
     "voteRound", "nightRound", "currentEventId", "currentResultId",
+    "drafts", "pendingAction",
   ].map((key) => [key, state[key]]));
   session.shownDiscussion = [...state.shownDiscussion];
   session.acknowledgedResults = [...state.acknowledgedResults];
@@ -521,6 +575,8 @@ async function restoreSession() {
   state.nightRound = saved.nightRound;
   state.currentEventId = saved.currentEventId;
   state.currentResultId = saved.currentResultId;
+  state.drafts = saved.drafts || {};
+  state.pendingAction = saved.pendingAction || null;
   state.shownDiscussion = new Set(Array.isArray(saved.shownDiscussion) ? saved.shownDiscussion : []);
   state.acknowledgedResults = new Set(Array.isArray(saved.acknowledgedResults) ? saved.acknowledgedResults : []);
   state.notes = readStored(`palermo-notes-${saved.gameId}`, { text: "", suspicion: {} });
@@ -541,6 +597,7 @@ async function restoreSession() {
     } else {
       showScreen("story-screen");
       showStopped(true);
+      scheduleRecovery();
     }
   } finally { showLoading(false); }
 }
@@ -650,7 +707,14 @@ function enhancePlayerSelects(root) {
     };
     const close = () => { menu.hidden = true; button.setAttribute("aria-expanded", "false"); picker.closest(".dialogue-box")?.classList.remove("mention-open"); };
     const update = () => {
-      button.innerHTML = labelFor(select.selectedOptions[0]);
+      button.innerHTML = labelFor(select.selectedOptions[0] || select.options[0]);
+      button.disabled = select.disabled;
+      if (select.disabled) close();
+      $$('[data-player-value]', menu).forEach((item) => {
+        const option = [...select.options].find((o) => o.value === item.dataset.playerValue);
+        item.disabled = Boolean(option?.disabled);
+        item.hidden = Boolean(option?.hidden);
+      });
       $$('[data-player-value]', menu).forEach((item) => item.setAttribute("aria-selected", String(item.dataset.playerValue === select.value)));
     };
     menu.innerHTML = [...select.options].map((option) => `<button type="button" role="option" data-player-value="${escapeHTML(option.value)}">${labelFor(option)}</button>`).join("");
@@ -667,20 +731,22 @@ function enhancePlayerSelects(root) {
       if (event.key === "Escape") return close();
       if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
       event.preventDefault();
-      const options = [...select.options];
-      const next = (select.selectedIndex + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+      if (select.disabled) return;
+      const options = [...select.options].filter((o) => !o.disabled && !o.hidden);
+      const next = (options.findIndex((o) => o.value === select.value) + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
       select.value = options[next].value;
       select.dispatchEvent(new Event("change", { bubbles: true }));
       update();
     });
     menu.addEventListener("click", (event) => {
       const item = event.target.closest("[data-player-value]");
-      if (!item) return;
+      if (!item || item.disabled || select.disabled) return;
       select.value = item.dataset.playerValue;
       select.dispatchEvent(new Event("change", { bubbles: true }));
       update(); close(); button.focus();
     });
     select.addEventListener("change", update);
+    select.addEventListener("picker-refresh", update);
     select.tabIndex = -1;
     select.setAttribute("aria-hidden", "true");
     picker.append(button, menu);
@@ -737,14 +803,21 @@ function profileImageMarkup(playerId, className = "event-profile") {
   return `<img class="${className}" src="${character.profileImage}" alt="${escapeHTML(character.name)}" loading="lazy" />`;
 }
 
+function positionText(event) {
+  const position = event.position;
+  if (!position?.target) return "";
+  const label = {fa: "مظنون اعلام‌شده", en: "Declared suspect", de: "Genannter Verdächtiger"}[state.lang];
+  return `${label}: ${playerName(position.target)}. ${replacePlayerReferences(position.reason || "")}`;
+}
+
 function eventSummary(event) {
   if (["PLAYER_SHUNNED", "PLAYER_ELIMINATED", "NIGHT_RESULT"].includes(event.type)) return factEventText(event);
   if (event.type === "ROLE_CLAIMED") return `${playerName(event.actor)} — ${text("claimedRole")}: ${text("claims")[event.claimed_role] || event.claimed_role}`;
-  if (event.type === "PLAYER_SPOKE") return `${playerName(event.actor)}: ${replacePlayerReferences(event.text)}`;
-  if (event.type === "PLAYER_ASKED") return `${playerName(event.actor)} → ${playerName(event.target)}: ${replacePlayerReferences(event.text)}`;
+  if (event.type === "PLAYER_SPOKE") return `${playerName(event.actor)}: ${eventDialogue(event)}`;
+  if (event.type === "PLAYER_ASKED") return `${playerName(event.actor)} → ${playerName(event.target)}: ${eventDialogue(event)}`;
   if (event.type === "PLAYER_ANSWERED") {
     const targets = event.targets || (event.target ? [event.target] : []);
-    return `${playerName(event.actor)} → ${targets.map(playerName).join("، ")}: ${replacePlayerReferences(event.text)}`;
+    return `${playerName(event.actor)} → ${targets.map(playerName).join("، ")}: ${eventDialogue(event)}`;
   }
   if (event.type === "PLAYER_PASSED") return `${playerName(event.actor)} — ${eventDialogue(event)}`;
   if (event.type === "VOTE_CAST") return `${playerName(event.actor)} → ${playerName(event.target)}`;
@@ -765,7 +838,7 @@ function renderClaims() {
 }
 
 function renderTimeline() {
-  return `${journalControls()}<section id="journal-results" class="facts-section">${renderJournal(true)}</section>`;
+  return `<section id="journal-results" class="facts-section">${renderJournal(true)}</section>`;
 }
 
 function renderJournalPlayer() {
@@ -851,6 +924,7 @@ function setLanguage(language) {
   $("#loading-text").textContent = text("loading");
   renderCharacters();
   renderTutorial();
+  refreshResumeControls();
   renderFacts();
   renderArchives();
 }
@@ -916,7 +990,7 @@ async function startGame(characterId) {
   state.characterMap = buildCharacterMap(characterId);
   showLoading(true);
   try {
-    const response = await fetch("/games/interactive", {
+    const createRequest = () => fetchWithTimeout("/games/interactive", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -925,7 +999,17 @@ async function startGame(characterId) {
         ai_mode: "luna",
       }),
     });
-    if (!response.ok) throw new Error(await response.text());
+    let response = await createRequest();
+    if (response.status === 401) {
+      const key = window.prompt({ fa: "کد دسترسی بازی آنلاین را وارد کن", en: "Enter the online play access code", de: "Zugangscode für das Online-Spiel eingeben" }[state.lang]);
+      if (!key) return;
+      const access = await fetchWithTimeout("/session", { method: "POST", headers: { "X-Play-Key": key } });
+      if (!access.ok) throw new Error("access_denied");
+      response = await createRequest();
+    }
+    if (!response.ok) {
+      const error = new Error(await response.text()); error.status = response.status; throw error;
+    }
     const created = await response.json();
     state.gameId = created.game_id;
     state.playerId = created.human.player_id;
@@ -943,6 +1027,8 @@ async function startGame(characterId) {
     state.shownDiscussion.clear();
     state.acknowledgedResults.clear();
     state.events = [];
+    state.drafts = {};
+    state.pendingAction = null;
     state.nightReplay = [];
     state.stage = "role";
     saveSession();
@@ -952,7 +1038,8 @@ async function startGame(characterId) {
     showRoleReveal();
   } catch (error) {
     console.error(error);
-    toast(text("networkError"));
+    toast(error.status === 429 ? ({ fa: "ظرفیت یا سهمیهٔ بازی پر شده؛ بازی قبلی را ادامه بده یا کمی بعد تلاش کن.", en: "Game capacity or quota reached. Resume your game or try again later.", de: "Spiellimit erreicht. Bestehendes Spiel fortsetzen oder später versuchen." }[state.lang]) : text("networkError"));
+    if (state.gameId) { showScreen("story-screen"); showStopped(true); scheduleRecovery(); }
   } finally {
     showLoading(false);
   }
@@ -969,8 +1056,8 @@ async function syncState(route = true) {
   syncPromise = (async () => {
   const headers = { "X-Player-Token": state.token };
   const [observationResponse, runResponse] = await Promise.all([
-    fetch(state.observationUrl || `/game/${state.gameId}/player/${state.playerId}/observation`, { headers }),
-    fetch(`/game/${state.gameId}/run-state`, { headers }),
+    fetchWithTimeout(state.observationUrl || `/game/${state.gameId}/player/${state.playerId}/observation`, { headers }),
+    fetchWithTimeout(`/game/${state.gameId}/run-state`, { headers }),
   ]);
   if (![observationResponse, runResponse].every((response) => response.ok)) {
     const error = new Error("state unavailable");
@@ -987,6 +1074,14 @@ async function syncState(route = true) {
   state.events = observation.events || [];
   state.nightReplay = observation.night_replay || [];
   state.run = run;
+  if (state.pendingAction && run.accepted_request_ids?.includes(state.pendingAction.id)) {
+    delete state.drafts[state.pendingAction.draft_key];
+    state.pendingAction = null;
+    saveSession();
+  }
+  recoveryDelay = 1000;
+  window.clearTimeout(recoveryTimer); recoveryTimer = null;
+  $("#connection-state").classList.remove("offline");
   saveCompletedReport();
   renderFacts();
   $("#round-label").textContent = `DAY ${String(state.public.round).padStart(2, "0")}`;
@@ -996,13 +1091,15 @@ async function syncState(route = true) {
   if (state.run.mode === "offline") $("#agent-status").title = text("offline");
   else if (fallbackCount) $("#agent-status").title = text("degraded");
   })();
+  let synced = false;
   try {
     await syncPromise;
+    synced = true;
   } finally {
     syncPromise = null;
     const shouldRoute = syncNeedsRoute;
     syncNeedsRoute = false;
-    if (shouldRoute && state.gameId === requestedGameId) routeAfterSync();
+    if (synced && shouldRoute && state.gameId === requestedGameId) routeAfterSync();
     if (syncAgain && state.gameId === requestedGameId) {
       syncAgain = false;
       scheduleSync();
@@ -1014,7 +1111,7 @@ function scheduleSync() {
   syncNeedsRoute = true;
   window.clearTimeout(syncTimer);
   syncTimer = window.setTimeout(() => {
-    syncState(true).catch((error) => console.error(error));
+    syncState(true).catch(() => scheduleRecovery());
   }, 100);
 }
 
@@ -1023,7 +1120,7 @@ function connectStream(url) {
   const connection = $("#connection-state");
   state.eventSource = new EventSource(url);
   state.eventSource.addEventListener("open", () => connection.classList.remove("offline"));
-  state.eventSource.addEventListener("error", () => connection.classList.add("offline"));
+  state.eventSource.addEventListener("error", () => { connection.classList.add("offline"); scheduleRecovery(); });
   state.eventSource.addEventListener("game-event", scheduleSync);
   // SSE carries public progress only; fetch the authenticated participant view.
   state.eventSource.addEventListener("run-state", scheduleSync);
@@ -1244,13 +1341,20 @@ function routePlay() {
   if (state.public.phase === "DAY_VOTING" && state.public.round === state.narrativeRound
       && actions.includes("SUBMIT_VOTE_DECISION") && state.run.status === "WAITING_FOR_HUMAN") return showVote();
   if (state.public.phase === "GAME_OVER") return showGameOver();
+  if (state.public.players[state.playerId]?.alive === false) return showSpectator();
   state.stage = "play_wait";
   showWaiting(5);
 }
 
+function showSpectator() {
+  state.stage = "play_wait";
+  renderStory({ number: 5, image: assets.town, centered: true,
+    html: `<h2>${state.lang === "fa" ? "در حال تماشای بازی" : state.lang === "de" ? "Du schaust zu" : "Watching the game"}</h2><p class="story-text">${state.lang === "fa" ? "بازی برای دیگران ادامه دارد. گفتگوها و نتیجه‌ها در دفتر وقایع ثبت می‌شوند." : state.lang === "de" ? "Das Spiel geht weiter. Gespräche und Ergebnisse stehen im Journal." : "The game continues. Follow conversations and results in the journal."}</p>` });
+}
+
 function eventDialogue(event) {
   if (event.type === "PLAYER_PASSED") return state.lang === "fa" ? "ترجیح می‌دهم فعلاً سکوت کنم." : state.lang === "de" ? "Ich schweige vorerst." : "I choose to remain silent for now.";
-  return replacePlayerReferences(event.text || "…");
+  return [replacePlayerReferences(event.text || "…"), positionText(event)].filter(Boolean).join("\n");
 }
 
 function dialogueDensity(value) {
@@ -1403,6 +1507,13 @@ function showHumanDiscussion(actions) {
       </div>
     </div>`,
   });
+  const draft = state.drafts[draftKey("human_discussion")] || {};
+  $("#human-text").value = draft.text || "";
+  const askTarget = $("#ask-target");
+  if (askTarget && draft.target) { askTarget.value = draft.target; askTarget.dispatchEvent?.(new Event("change", { bubbles: true })); }
+  const rememberDraft = () => saveDraft("human_discussion", { text: $("#human-text").value, target: $("#ask-target")?.value || "" });
+  $("#human-text").addEventListener("input", rememberDraft);
+  askTarget?.addEventListener("change", rememberDraft);
   bindPlayerMentions();
   $("#submit-speech")?.addEventListener("click", async () => {
     const value = $("#human-text").value.trim();
@@ -1449,26 +1560,46 @@ function showVote() {
   state.stage = "vote";
   state.voteRound = state.public.round;
   const candidates = selectablePlayers((playerId) => playerId !== state.playerId);
-  const eliminatedMafia = Object.values(state.public.revealed_roles || {}).filter((role) => ["MAFIA_BOSS", "MAFIA_DEPUTY"].includes(role)).length;
-  const needsSecondSuspect = 2 - eliminatedMafia > 1;
+  const citizen = !isMafiaRole(state.private.role);
+  const needsSecondSuspect = citizen;
   const options = (selected = "") => `<option value="">${text("choosePlayer")}</option>${candidates.map((playerId) => `<option value="${playerId}" ${selected === playerId ? "selected" : ""}>${escapeHTML(playerName(playerId))}</option>`).join("")}`;
   renderStory({
     number: 6,
     image: assets.town,
     wide: true,
-    html: `<div class="selection-heading"><p class="eyebrow">${slideName(6)}</p><h2 data-typewriter>${text("voteTitle")}</h2><p>${text("voteHelp")}</p></div>
+    html: `<div class="selection-heading"><p class="eyebrow">${slideName(6)}</p><h2 data-typewriter>${text("voteTitle")}</h2><p>${state.lang === "fa" ? "هدف رأی را انتخاب کن. انتخاب‌های دیگر برای شهروندان اختیاری‌اند." : state.lang === "de" ? "Wähle dein Stimmziel. Weitere Angaben sind für Bürger freiwillig." : "Choose your vote. Citizens may optionally add a second suspect and a trusted player."}</p></div>
       <div class="vote-layout"><div class="target-grid">${targetCards(candidates, "SUBMIT_VOTE_DECISION")}</div>
       <div class="vote-decision-panel"><b>${text("voteTarget")}</b><span id="selected-vote">—</span>
-        <label>${text("trustedPlayer")}<select id="trusted-player">${options()}</select></label>
-        ${needsSecondSuspect ? `<label>${text("secondSuspect")}<select id="second-suspect">${options()}</select></label>` : ""}
+        ${citizen ? `<label>${text("secondSuspect")}<select id="second-suspect" disabled>${options()}</select></label>
+        <label>${text("trustedPlayer")}<select id="trusted-player" disabled>${options()}</select></label>` : ""}
         <button id="confirm-vote" class="primary-button" type="button" disabled>${text("confirmVote")}</button></div></div>`,
   });
-  let voteTarget = null;
+  const draft = state.drafts[draftKey("vote")] || {};
+  let voteTarget = candidates.includes(draft.voteTarget) ? draft.voteTarget : null;
+  for (const [selector, value] of [["#trusted-player", draft.trusted], ["#second-suspect", draft.suspect]]) {
+    const input = $(selector);
+    if (input && candidates.includes(value)) { input.value = value; input.dispatchEvent?.(new Event("change", { bubbles: true })); }
+  }
   const validate = () => {
-    const trusted = $("#trusted-player").value;
-    const suspect = $("#second-suspect")?.value || null;
-    const values = [voteTarget, trusted, ...(needsSecondSuspect ? [suspect] : [])];
-    $("#confirm-vote").disabled = values.some((value) => !value) || new Set(values).size !== values.length;
+    const trustedInput = $("#trusted-player");
+    const suspectInput = $("#second-suspect");
+    for (const input of [suspectInput, trustedInput].filter(Boolean)) {
+      input.disabled = !voteTarget;
+      if (input.value === voteTarget) input.value = "";
+    }
+    if (trustedInput?.value && trustedInput.value === suspectInput?.value) trustedInput.value = "";
+    for (const [input, other] of [[suspectInput, trustedInput], [trustedInput, suspectInput]]) {
+      if (!input) continue;
+      for (const option of input.options) {
+        option.disabled = Boolean(option.value && (option.value === voteTarget || option.value === other?.value));
+        option.hidden = option.disabled;
+      }
+      input.dispatchEvent(new Event("picker-refresh"));
+    }
+    const trusted = trustedInput?.value || null;
+    const suspect = suspectInput?.value || null;
+    $("#confirm-vote").disabled = !voteTarget;
+    saveDraft("vote", { voteTarget, trusted, suspect });
   };
   $$('[data-target]').forEach((button) => button.addEventListener("click", () => {
     voteTarget = button.dataset.target;
@@ -1477,11 +1608,18 @@ function showVote() {
     decoratePlayerNames($("#selected-vote"));
     validate();
   }));
-  $("#trusted-player").addEventListener("change", validate);
+  $("#trusted-player")?.addEventListener("change", validate);
   $("#second-suspect")?.addEventListener("change", validate);
+  if (voteTarget) {
+    $$('[data-target]').forEach((button) => button.classList.toggle("is-selected", button.dataset.target === voteTarget));
+    $("#selected-vote").textContent = playerName(voteTarget);
+    decoratePlayerNames($("#selected-vote"));
+  }
+  validate();
   $("#confirm-vote").addEventListener("click", async () => {
-    const payload = { action: "SUBMIT_VOTE_DECISION", vote_target: voteTarget, trusted_player: $("#trusted-player").value };
-    if (needsSecondSuspect) payload.suspect_2 = $("#second-suspect").value;
+    const payload = { action: "SUBMIT_VOTE_DECISION", vote_target: voteTarget };
+    if (citizen && $("#trusted-player").value) payload.trusted_player = $("#trusted-player").value;
+    if (citizen && $("#second-suspect").value) payload.suspect_2 = $("#second-suspect").value;
     await submitAndAdvance(payload, "vote_wait", 6);
   });
 }
@@ -1508,7 +1646,7 @@ function showVoteResult(event) {
   $("#vote-next").addEventListener("click", () => {
     state.acknowledgedResults.add(event.event_id);
     state.nightRound = event.round;
-    if (state.public.phase === "GAME_OVER" && !nightResultEvent()) showGameOver(); else showNight();
+    if (state.public.phase === "GAME_OVER" && !nightResultEvent()) showGameOver(); else if (state.public.players[state.playerId]?.alive === false) { state.stage = "play"; routePlay(); } else showNight();
   });
 }
 
@@ -1636,7 +1774,21 @@ function showGameOver() {
     image: assets.morning,
     centered: true,
     html: `<p class="eyebrow">GAME OVER</p><h2 data-typewriter>${text("gameOver")}</h2><p class="story-text">${text("winner")}: ${escapeHTML(winner)}</p>
+      <button id="review-nights" class="secondary-button" type="button">${{fa:"بازبینی شب‌ها",en:"Review nights",de:"Nächte ansehen"}[state.lang]}</button>
+      <details class="postgame-lesson"><summary>${state.lang === "fa" ? "درس این بازی" : state.lang === "de" ? "Aus diesem Spiel lernen" : "Learn from this game"}</summary><p>${state.lang === "fa" ? "کدام تصمیم با اطلاعات همان لحظه قابل دفاع بود؟ کجا نتیجه بیشتر به شانس وابسته بود؟ گفتگوها و رأی‌ها را مرور کن؛ پیروزی به‌تنهایی درستی یک راهبرد را ثابت نمی‌کند." : state.lang === "de" ? "Welche Entscheidung war mit dem damaligen Wissen begründet? Wo spielte Glück eine Rolle? Ein Sieg allein beweist keine Strategie." : "Which decisions made sense with the information available then? Where did luck matter? Winning alone does not validate a strategy."}</p><button id="download-analysis" class="secondary-button" type="button">${state.lang === "fa" ? "دریافت گزارش تحلیل" : state.lang === "de" ? "Analyse herunterladen" : "Download analysis"}</button></details>
       <button id="restart" class="primary-button" type="button"><span>${text("newStory")}</span><span>↻</span></button>`,
+  });
+  $("#review-nights").addEventListener("click", () => { state.consoleTab = "timeline"; state.journalFilters = {player:"",round:"",kind:""}; renderFacts(); setFactsOpen(true); });
+  $("#download-analysis")?.addEventListener("click", async () => {
+    const button = $("#download-analysis"); button.disabled = true;
+    try {
+      const response = await fetchWithTimeout(`/game/${state.gameId}/analysis`);
+      if (!response.ok) throw new Error("analysis unavailable");
+      const report = await response.json();
+      const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], {type:"application/json"}));
+      const link = document.createElement("a"); link.href = url; link.download = `${state.gameId}-analysis.json`; link.click(); URL.revokeObjectURL(url);
+    } catch { toast(text("networkError")); }
+    finally { button.disabled = false; }
   });
   $("#restart").addEventListener("click", goHome);
 }
@@ -1658,6 +1810,7 @@ async function submitAndAdvance(payload, waitingStage, slide) {
   actionInFlight = true;
   const gameId = state.gameId;
   const previousStage = state.stage;
+  const submittedDraftKey = draftKey(previousStage);
   const controls = $$("#story-content button, #story-content input, #story-content select, #story-content textarea")
     .map((element) => ({ element, disabled: element.disabled }));
   controls.forEach(({ element }) => { element.disabled = true; });
@@ -1667,19 +1820,21 @@ async function submitAndAdvance(payload, waitingStage, slide) {
   saveSession();
   try {
     await submitHumanAction(payload);
-    if (state.gameId !== gameId) return;
+    delete state.drafts[submittedDraftKey];
+    if (state.gameId !== gameId || state.stage === "home") return;
     showWaiting(slide);
   } catch (error) {
-    if (state.gameId !== gameId) return;
+    if (state.gameId !== gameId || state.stage === "home") return;
     // Reconcile ambiguous network failures before offering a retry.
     try { await syncState(false); } catch { /* Retain the action form for retry. */ }
     if (state.availableActions.includes(payload.action)) state.stage = previousStage;
     else showWaiting(slide);
     toast(text("networkError"));
+    scheduleRecovery();
   } finally {
     controls.forEach(({ element, disabled }) => { element.disabled = disabled; });
     actionInFlight = false;
-    if (state.gameId === gameId) {
+    if (state.gameId === gameId && state.stage !== "home") {
       // Always route the latest snapshot, independent of SSE/HTTP ordering.
       routeAfterSync();
       saveSession();
@@ -1695,19 +1850,34 @@ async function submitHumanAction(payload) {
       if (!state.availableActions.includes(payload.action)) throw new Error("stale action");
     }
     state.availableActions = [];
-    const response = await fetch(`/game/${state.gameId}/interactive/action`, {
+    const serialized = JSON.stringify(payload);
+    if (!state.pendingAction || state.pendingAction.payload !== serialized) {
+      state.pendingAction = {
+        id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        payload: serialized,
+        draft_key: draftKey(payload.action === "SUBMIT_VOTE_DECISION" ? "vote" : "human_discussion"),
+        expected_event_id: state.events.at(-1)?.event_id || null,
+      };
+      saveSession();
+    }
+    const response = await fetchWithTimeout(`/game/${state.gameId}/interactive/action`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Player-Token": state.token },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, request_id: state.pendingAction.id, expected_event_id: state.pendingAction.expected_event_id }),
     });
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       if (response.status === 409) {
+        state.pendingAction = null;
         await syncState(false);
         routeAfterSync();
       }
       throw new Error(body.detail || body.error || "action failed");
     }
+    await response.json();
+    if (state.pendingAction) delete state.drafts[state.pendingAction.draft_key];
+    state.pendingAction = null;
+    saveSession();
     await syncState(false);
   } catch (error) {
     if (!state.availableActions.length) state.availableActions = legalActions;
@@ -1721,7 +1891,7 @@ function isVoteResult(event) {
 }
 
 function routeAfterSync() {
-  if (state.archiveMode || !state.public || !state.run || actionInFlight || state.stage === "restoring") return;
+  if (state.archiveMode || !state.public || !state.run || actionInFlight || ["restoring", "home"].includes(state.stage)) return;
   if (["FAILED", "CANCELLED"].includes(state.run.status)) {
     if (state.stage !== "stopped") showStopped();
     return;
@@ -1751,28 +1921,45 @@ function routeAfterSync() {
   }
 }
 
-async function goHome() {
-  setFactsOpen(false);
-  cancelTypewriter();
-  stopEffect("footsteps");
-  if (state.eventSource) state.eventSource.close();
-  if (!state.archiveMode && state.gameId && state.run && ["QUEUED", "RUNNING", "WAITING_FOR_HUMAN"].includes(state.run.status)) {
-    fetch(`/game/${state.gameId}/run/cancel`, {
-      method: "POST", headers: { "X-Player-Token": state.token },
-    }).catch(() => {});
+function refreshResumeControls() {
+  const saved = readStored(SESSION_KEY, null);
+  const labels = { fa: ["ادامهٔ بازی", "پایان دادن به بازی"], en: ["Resume game", "End game"], de: ["Spiel fortsetzen", "Spiel beenden"] }[state.lang];
+  for (const [index, id] of ["#resume-game", "#end-game"].entries()) {
+    const button = $(id); if (!button) continue;
+    button.hidden = !saved; button.textContent = labels[index];
   }
-  clearSession();
-  window.clearTimeout(syncTimer);
-  syncAgain = false;
-  syncNeedsRoute = false;
-  state.gameId = null;
-  state.token = null;
-  state.observationUrl = null;
-  state.availableActions = [];
-  state.stage = "home";
-  state.archiveMode = false;
-  renderArchives();
-  showScreen("home");
+}
+
+async function endSavedGame() {
+  const saved = readStored(SESSION_KEY, null);
+  if (!saved) return true;
+  const prompt = { fa: "این بازی پایان یابد؟ دیگر نمی‌توانی آن را ادامه بدهی.", en: "End this game? It cannot be resumed.", de: "Dieses Spiel beenden? Es kann nicht fortgesetzt werden." }[state.lang];
+  if (!window.confirm(prompt)) return false;
+  try {
+    const response = await fetchWithTimeout(`/game/${saved.gameId}/run/cancel`, {
+      method: "POST", headers: { "X-Player-Token": saved.token },
+    });
+    await response.json();
+    if (!response.ok && ![404, 409].includes(response.status)) throw new Error("cancel_failed");
+    clearSession(); state.gameId = null; state.token = null; state.pendingAction = null;
+    refreshResumeControls(); return true;
+  } catch { toast(text("networkError")); return false; }
+}
+
+async function goHome() {
+  const active = !state.archiveMode && state.gameId && state.run && ["QUEUED", "RUNNING", "WAITING_FOR_HUMAN"].includes(state.run.status);
+  if (active) saveSession(); else if (!state.archiveMode) clearSession();
+  setFactsOpen(false); cancelTypewriter(); stopEffect("footsteps");
+  if (state.eventSource) state.eventSource.close();
+  window.clearTimeout(syncTimer); window.clearTimeout(recoveryTimer); recoveryTimer = null;
+  syncAgain = false; syncNeedsRoute = false;
+  state.stage = "home"; state.archiveMode = false;
+  renderArchives(); refreshResumeControls(); showScreen("home");
+}
+
+async function beginNewGame() {
+  if (readStored(SESSION_KEY, null) && !await endSavedGame()) return;
+  showScreen("character-screen");
 }
 
 document.addEventListener?.("click", (event) => {
@@ -1780,7 +1967,9 @@ document.addEventListener?.("click", (event) => {
   if (button && !button.disabled && !button.matches("[data-language]")) playEffect("button", true);
 });
 
-$("#new-game").addEventListener("click", () => showScreen("character-screen"));
+$("#new-game").addEventListener("click", beginNewGame);
+$("#resume-game")?.addEventListener("click", restoreSession);
+$("#end-game")?.addEventListener("click", endSavedGame);
 $("#tutorial-open")?.addEventListener("click", () => {
   renderTutorial();
   showScreen("tutorial-screen");
@@ -1788,7 +1977,7 @@ $("#tutorial-open")?.addEventListener("click", () => {
   $(".tutorial-scroll")?.scrollTo?.(0, 0);
 });
 $("#tutorial-back")?.addEventListener("click", () => showScreen("home"));
-$("#tutorial-start")?.addEventListener("click", () => showScreen("character-screen"));
+$("#tutorial-start")?.addEventListener("click", beginNewGame);
 $$('[data-language]').forEach((button) => button.addEventListener("click", () => setLanguage(button.dataset.language)));
 $$('[data-go-home]').forEach((button) => button.addEventListener("click", goHome));
 $("#facts-toggle").addEventListener("click", () => setFactsOpen(!$("#game-facts").classList.contains("is-open")));
@@ -1797,5 +1986,6 @@ $("#facts-scrim").addEventListener("click", () => setFactsOpen(false));
 $$('[data-console-tab]').forEach((button) => button.addEventListener("click", () => { state.consoleTab = button.dataset.consoleTab; renderFacts(); }));
 document.addEventListener("keydown", (event) => { if (event.key === "Escape") setFactsOpen(false); });
 setLanguage("en");
+refreshResumeControls();
 window.addEventListener("pagehide", saveSession);
 restoreSession();

@@ -1,0 +1,38 @@
+{
+  "offline_200": {
+    "wins": {
+      "MAFIA": 162,
+      "CITIZEN": 38
+    },
+    "failures": [],
+    "rounds_min_max": [
+      2,
+      6
+    ],
+    "first_attack_targets": {
+      "P1": 152,
+      "P2": 41,
+      "P3": 7
+    }
+  },
+  "audit_write_failure": {
+    "phase_after_error": "ROLE_CLAIM",
+    "run_status": "WAITING_FOR_HUMAN",
+    "stale_awaiting": [
+      "SELECT_STRATEGY"
+    ],
+    "actual_required": [
+      "ROLE_CLAIM"
+    ]
+  },
+  "unchanged_evidence_belief_drift": [
+    0.3833,
+    0.4183,
+    0.4428,
+    0.46,
+    0.472,
+    0.4804,
+    0.4863,
+    0.4904
+  ]
+}

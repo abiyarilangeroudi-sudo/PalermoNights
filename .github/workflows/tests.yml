@@ -1,0 +1,28 @@
+name: Game regression tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PALERMO_PYTHON: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: pip install -e . 'pytest>=8,<9'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: python -m pytest
+      - run: npm test
+      - run: npm run test:browser
+      - run: npm run test:browser
+        env:
+          PALERMO_BROWSER: webkit
