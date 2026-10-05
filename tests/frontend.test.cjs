@@ -474,6 +474,13 @@ test('expired sessions are cleared, temporary connection failures remain retryab
   `);
 });
 
+test('wrong online access code is distinguished from a network failure', async () => {
+  await harness().run(`
+    state.lang='fa';
+    assert.equal(text('accessDenied'),'کد دسترسی بازی آنلاین نادرست است.');
+  `);
+});
+
 test('journal ignores obsolete filters, preserves all public rounds and excludes private events', async () => {
   await harness().run(`
     const base={visibility:'PUBLIC',round:1};

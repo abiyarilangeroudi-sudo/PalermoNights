@@ -156,6 +156,7 @@ const copy = {
     offline: "حالت جایگزین آفلاین فعال شد",
     degraded: "اکشن جایگزین",
     networkError: "ارتباط با شهر قطع شد. دوباره تلاش کن.",
+    accessDenied: "کد دسترسی بازی آنلاین نادرست است.",
     claimedRole: "نقش ادعایی",
     facts: "دفتر وقایع",
     factsTitle: "دفتر وقایع بازی",
@@ -253,6 +254,7 @@ const copy = {
     offline: "Offline fallback agents are active",
     degraded: "fallback actions",
     networkError: "The connection to the city was lost. Try again.",
+    accessDenied: "The online play access code is incorrect.",
     claimedRole: "Claimed role",
     facts: "Case file",
     factsTitle: "Game case file",
@@ -350,6 +352,7 @@ const copy = {
     offline: "Offline-Ersatzagenten sind aktiv",
     degraded: "Ersatzaktionen",
     networkError: "Die Verbindung zur Stadt wurde unterbrochen. Versuche es erneut.",
+    accessDenied: "Der Zugangscode für das Online-Spiel ist falsch.",
     claimedRole: "Behauptete Rolle",
     facts: "Fallakte",
     factsTitle: "Spielakte",
@@ -1038,7 +1041,7 @@ async function startGame(characterId) {
     showRoleReveal();
   } catch (error) {
     console.error(error);
-    toast(error.status === 429 ? ({ fa: "ظرفیت یا سهمیهٔ بازی پر شده؛ بازی قبلی را ادامه بده یا کمی بعد تلاش کن.", en: "Game capacity or quota reached. Resume your game or try again later.", de: "Spiellimit erreicht. Bestehendes Spiel fortsetzen oder später versuchen." }[state.lang]) : text("networkError"));
+    toast(error.message === "access_denied" ? text("accessDenied") : error.status === 429 ? ({ fa: "ظرفیت یا سهمیهٔ بازی پر شده؛ بازی قبلی را ادامه بده یا کمی بعد تلاش کن.", en: "Game capacity or quota reached. Resume your game or try again later.", de: "Spiellimit erreicht. Bestehendes Spiel fortsetzen oder später versuchen." }[state.lang]) : text("networkError"));
     if (state.gameId) { showScreen("story-screen"); showStopped(true); scheduleRecovery(); }
   } finally {
     showLoading(false);
