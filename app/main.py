@@ -6,6 +6,7 @@ import os
 import secrets
 import copy
 import hashlib
+from dataclasses import replace
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,7 +18,7 @@ from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
-from .ai.config import AISettings, ConfigurationError
+from .ai.config import AISettings, ConfigurationError, ProviderConfig
 from .ai.service import (
     AIRun,
     AIRunRegistry,
@@ -68,6 +69,8 @@ class CreateInteractiveGameRequest(BaseModel):
 
 class ContinueInteractiveGameRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    provider: Literal["openai", "gemini", "openrouter"] = "openai"
+    model: str = Field(default="gpt-5.6-luna", min_length=2, max_length=120, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{1,119}$")
     player_api_key: SecretStr = Field(min_length=20, max_length=512)
 
 
@@ -179,7 +182,7 @@ async def create_session(request: Request, response: Response):
 @app.get("/health")
 async def health(request: Request) -> dict[str, str]:
     binding = getattr(request.scope.get("env"), "CF_VERSION_METADATA", None)
-    return {"status": "ok", "release": "2026-10-10-byok",
+    return {"status": "ok", "release": "2026-10-10-multi-provider-byok",
             "deployment_id": str(getattr(binding, "id", "local")),
             "storage": "durable-object" if runtime.external_scheduler else "sqlite"}
 
@@ -273,6 +276,7 @@ async def create_interactive_game(
         human_token=human.token,
         character_id=request.character_id,
         language=request.language,
+        ai_provider="openai" if mode == "live" else "offline",
         ai_model=ai_model,
         owner=owner,
         live_action_budget=limit("PALERMO_DECISIONS_PER_AGENT", 20),
@@ -296,6 +300,7 @@ async def create_interactive_game(
         "language": request.language,
         "character_id": request.character_id,
         "ai_mode": mode,
+        "ai_provider": run.ai_provider,
         "ai_model": ai_model,
         "credential_required": mode == "live",
         "human": {"player_id": human.player_id, "token": human.token},
@@ -311,12 +316,24 @@ async def create_interactive_game(
     }
 
 
-def participant_ai_settings(http_request: Request, api_key: str) -> AISettings:
-    """Create request-scoped OpenAI settings without trusting a deployment base URL."""
+def participant_ai_settings(
+    http_request: Request, provider: str, model: str, api_key: str,
+) -> AISettings:
+    """Create request-scoped settings using only allowlisted provider endpoints."""
     values = dict(request_ai_environment(http_request) or os.environ)
     values["OPENAI_API_KEY"] = api_key
     values["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
-    return AISettings.for_openai_players(player_count=6, env_file=None, environ=values)
+    base = AISettings.for_openai_players(player_count=6, env_file=None, environ=values)
+    provider_config = {
+        "openai": ProviderConfig("openai", model, api_key, "https://api.openai.com/v1"),
+        "gemini": ProviderConfig("gemini", model, api_key),
+        "openrouter": ProviderConfig("openrouter", model, api_key, "https://openrouter.ai/api/v1"),
+    }[provider]
+    return replace(
+        base,
+        provider_mode=f"participant-{provider}",
+        player_providers=tuple(provider_config for _ in range(6)),
+    )
 
 
 @app.post("/game/{game_id}/interactive/continue")
@@ -340,7 +357,10 @@ async def continue_interactive_game(
             return run.public_dict(participant=True)
         before = copy.deepcopy(snapshot(game, run))
         try:
-            settings = participant_ai_settings(http_request, request.player_api_key.get_secret_value())
+            settings = participant_ai_settings(
+                http_request, request.provider, request.model,
+                request.player_api_key.get_secret_value(),
+            )
             runner = runtime.replace_runner(
                 run, mode="live", settings=settings, allow_fallback=False,
             )
@@ -354,9 +374,11 @@ async def continue_interactive_game(
             ) else 502
             raise HTTPException(
                 status_code=status,
-                detail="The supplied OpenAI API key could not complete this turn",
+                detail="The supplied provider credentials could not complete this turn",
             ) from None
         runtime.replace_runner(run, mode="offline")
+        run.ai_provider = request.provider
+        run.ai_model = request.model
         runtime.save(game_id)
         return run.public_dict(participant=True)
 

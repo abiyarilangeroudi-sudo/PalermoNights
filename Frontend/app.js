@@ -157,13 +157,15 @@ const copy = {
     degraded: "اکشن جایگزین",
     networkError: "ارتباط با شهر قطع شد. دوباره تلاش کن.",
     accessDenied: "کد دسترسی بازی آنلاین نادرست است.",
-    apiKeyTitle: "با کلید OpenAI خودت بازی کن",
-    apiKeyHelp: "کلید فقط برای اجرای نوبت‌های همین بازی به سرور فرستاده می‌شود و در مرورگر، دفتر وقایع یا ذخیرهٔ بازی نگهداری نمی‌شود. پس از بازخوانی صفحه باید آن را دوباره وارد کنی.",
-    apiKeyLabel: "OpenAI API Key",
-    apiKeyPlaceholder: "sk-…",
+    apiKeyTitle: "با Provider و کلید خودت بازی کن",
+    apiKeyHelp: "Provider و مدل را انتخاب کن. کلید فقط برای اجرای نوبت‌های همین بازی به سرور رسمی همان Provider فرستاده می‌شود و در مرورگر، دفتر وقایع یا ذخیرهٔ بازی نگهداری نمی‌شود.",
+    apiProviderLabel: "ارائه‌دهندهٔ مدل",
+    apiModelLabel: "نام مدل",
+    apiKeyLabel: "API Key",
+    apiKeyPlaceholder: "کلید Provider انتخاب‌شده",
     apiKeyContinue: "ادامه با کلید من",
     apiKeyCancel: "فعلاً نه",
-    apiKeyRejected: "این کلید نتوانست نوبت مدل را اجرا کند. کلید معتبر و دسترسی مدل را بررسی کن.",
+    apiKeyRejected: "Provider، نام مدل یا کلید نتوانست نوبت را اجرا کند. تنظیمات و دسترسی مدل را بررسی کن.",
     claimedRole: "نقش ادعایی",
     facts: "دفتر وقایع",
     factsTitle: "دفتر وقایع بازی",
@@ -262,13 +264,15 @@ const copy = {
     degraded: "fallback actions",
     networkError: "The connection to the city was lost. Try again.",
     accessDenied: "The online play access code is incorrect.",
-    apiKeyTitle: "Play with your own OpenAI key",
-    apiKeyHelp: "The key is sent to the server only to run turns in this game. It is never saved in the browser, case file, or game snapshot. You must enter it again after a reload.",
-    apiKeyLabel: "OpenAI API Key",
-    apiKeyPlaceholder: "sk-…",
+    apiKeyTitle: "Play with your own provider and key",
+    apiKeyHelp: "Choose a provider and model. The key is sent only to that provider's official server to run turns in this game and is never saved in the browser, case file, or game snapshot.",
+    apiProviderLabel: "Model provider",
+    apiModelLabel: "Model name",
+    apiKeyLabel: "API Key",
+    apiKeyPlaceholder: "Key for the selected provider",
     apiKeyContinue: "CONTINUE WITH MY KEY",
     apiKeyCancel: "NOT NOW",
-    apiKeyRejected: "This key could not run the model turn. Check the key and its model access.",
+    apiKeyRejected: "The provider, model name, or key could not run the turn. Check the settings and model access.",
     claimedRole: "Claimed role",
     facts: "Case file",
     factsTitle: "Game case file",
@@ -367,13 +371,15 @@ const copy = {
     degraded: "Ersatzaktionen",
     networkError: "Die Verbindung zur Stadt wurde unterbrochen. Versuche es erneut.",
     accessDenied: "Der Zugangscode für das Online-Spiel ist falsch.",
-    apiKeyTitle: "Mit deinem OpenAI-Schlüssel spielen",
-    apiKeyHelp: "Der Schlüssel wird nur für die Züge dieses Spiels an den Server gesendet. Er wird weder im Browser noch in der Spielakte oder im Spielstand gespeichert. Nach dem Neuladen musst du ihn erneut eingeben.",
-    apiKeyLabel: "OpenAI API Key",
-    apiKeyPlaceholder: "sk-…",
+    apiKeyTitle: "Mit eigenem Anbieter und Schlüssel spielen",
+    apiKeyHelp: "Wähle Anbieter und Modell. Der Schlüssel wird nur für Spielzüge an den offiziellen Server dieses Anbieters gesendet und weder im Browser noch in der Spielakte oder im Spielstand gespeichert.",
+    apiProviderLabel: "Modellanbieter",
+    apiModelLabel: "Modellname",
+    apiKeyLabel: "API Key",
+    apiKeyPlaceholder: "Schlüssel des gewählten Anbieters",
     apiKeyContinue: "MIT MEINEM SCHLÜSSEL WEITER",
     apiKeyCancel: "JETZT NICHT",
-    apiKeyRejected: "Mit diesem Schlüssel konnte der Modellzug nicht ausgeführt werden. Prüfe Schlüssel und Modellzugriff.",
+    apiKeyRejected: "Anbieter, Modellname oder Schlüssel konnten den Zug nicht ausführen. Prüfe Einstellungen und Modellzugriff.",
     claimedRole: "Behauptete Rolle",
     facts: "Fallakte",
     factsTitle: "Spielakte",
@@ -508,7 +514,13 @@ let syncAgain = false;
 let syncNeedsRoute = false;
 let syncTimer = null;
 let actionInFlight = false;
-let participantApiKey = "";
+const participantProviderDefaults = {
+  openai: "gpt-5.6-luna",
+  gemini: "gemini-2.5-flash",
+  openrouter: "openai/gpt-4.1-mini",
+};
+let participantCredentials = null;
+let participantCredentialDraft = null;
 let credentialDrivePromise = null;
 const SESSION_KEY = "palermo-active-session-v1";
 let recoveryTimer = null;
@@ -531,36 +543,53 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
   } finally { clearTimeout(timer); }
 }
 
-function requestParticipantApiKey() {
-  if (participantApiKey) return Promise.resolve(participantApiKey);
+function requestParticipantCredentials() {
+  if (participantCredentials?.apiKey) return Promise.resolve(participantCredentials);
   const modal = $("#api-key-modal");
   const form = $("#api-key-form");
-  const input = $("#api-key-input");
+  const providerInput = $("#api-provider-select");
+  const modelInput = $("#api-model-input");
+  const keyInput = $("#api-key-input");
   $("#api-key-title").textContent = text("apiKeyTitle");
   $("#api-key-help").textContent = text("apiKeyHelp");
+  $("#api-provider-label").textContent = text("apiProviderLabel");
+  $("#api-model-label").textContent = text("apiModelLabel");
   $("#api-key-label").textContent = text("apiKeyLabel");
-  input.placeholder = text("apiKeyPlaceholder");
+  keyInput.placeholder = text("apiKeyPlaceholder");
   $("#api-key-submit").textContent = text("apiKeyContinue");
   $("#api-key-cancel").textContent = text("apiKeyCancel");
+  const preferredProvider = participantCredentialDraft?.provider || state.run?.ai_provider || "openai";
+  providerInput.value = participantProviderDefaults[preferredProvider] ? preferredProvider : "openai";
+  modelInput.value = participantCredentialDraft?.model
+    || (state.run?.ai_provider === providerInput.value ? state.run?.ai_model : "")
+    || participantProviderDefaults[providerInput.value];
+  $("#api-provider-kicker").textContent = providerInput.options[providerInput.selectedIndex].text;
+  providerInput.onchange = () => {
+    modelInput.value = participantProviderDefaults[providerInput.value];
+    $("#api-provider-kicker").textContent = providerInput.options[providerInput.selectedIndex].text;
+  };
   modal.hidden = false;
   document.body.classList.add("has-credential-modal");
-  input.value = "";
-  window.setTimeout(() => input.focus(), 0);
+  keyInput.value = "";
+  window.setTimeout(() => keyInput.focus(), 0);
   return new Promise((resolve) => {
     const finish = (value) => {
-      input.value = "";
+      keyInput.value = "";
       modal.hidden = true;
       document.body.classList.remove("has-credential-modal");
       form.onsubmit = null;
+      providerInput.onchange = null;
       $("#api-key-cancel").onclick = null;
       resolve(value);
     };
     form.onsubmit = (event) => {
       event.preventDefault();
-      const value = input.value.trim();
-      if (value.length < 20) return;
-      participantApiKey = value;
-      finish(value);
+      const apiKey = keyInput.value.trim();
+      const model = modelInput.value.trim();
+      if (apiKey.length < 20 || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{1,119}$/.test(model)) return;
+      participantCredentials = { provider: providerInput.value, model, apiKey };
+      participantCredentialDraft = { provider: providerInput.value, model };
+      finish(participantCredentials);
     };
     $("#api-key-cancel").onclick = () => finish(null);
   });
@@ -573,15 +602,23 @@ async function driveParticipantRun() {
   const gameId = state.gameId;
   credentialDrivePromise = (async () => {
     while (state.gameId === gameId && ["QUEUED", "RUNNING"].includes(state.run?.status)) {
-      const apiKey = await requestParticipantApiKey();
-      if (!apiKey) return false;
+      const credentials = await requestParticipantCredentials();
+      if (!credentials) return false;
       const response = await fetchWithTimeout(`/game/${gameId}/interactive/continue`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Player-Token": state.token },
-        body: JSON.stringify({ player_api_key: apiKey }),
+        body: JSON.stringify({
+          provider: credentials.provider,
+          model: credentials.model,
+          player_api_key: credentials.apiKey,
+        }),
       }, 75000);
       if (response.status === 422) {
-        participantApiKey = "";
+        participantCredentialDraft = {
+          provider: credentials.provider,
+          model: credentials.model,
+        };
+        participantCredentials = null;
         toast(text("apiKeyRejected"));
         continue;
       }
@@ -1856,7 +1893,8 @@ function showMorning(event) {
 }
 
 function showGameOver() {
-  participantApiKey = "";
+  participantCredentials = null;
+  participantCredentialDraft = null;
   state.stage = "game_over";
   const winner = state.public.winner ? text("roles")[state.public.winner] || state.public.winner : "—";
   renderStory({
@@ -2032,7 +2070,7 @@ async function endSavedGame() {
     });
     await response.json();
     if (!response.ok && ![404, 409].includes(response.status)) throw new Error("cancel_failed");
-    clearSession(); participantApiKey = ""; state.gameId = null; state.token = null; state.pendingAction = null;
+    clearSession(); participantCredentials = null; participantCredentialDraft = null; state.gameId = null; state.token = null; state.pendingAction = null;
     refreshResumeControls(); return true;
   } catch { toast(text("networkError")); return false; }
 }
@@ -2044,7 +2082,8 @@ async function goHome() {
   if (state.eventSource) state.eventSource.close();
   window.clearTimeout(syncTimer); window.clearTimeout(recoveryTimer); recoveryTimer = null;
   syncAgain = false; syncNeedsRoute = false;
-  participantApiKey = "";
+  participantCredentials = null;
+  participantCredentialDraft = null;
   state.stage = "home"; state.archiveMode = false;
   renderArchives(); refreshResumeControls(); showScreen("home");
 }

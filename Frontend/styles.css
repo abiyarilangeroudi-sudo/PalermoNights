@@ -845,7 +845,8 @@ html[dir="rtl"] .toast.is-visible { translate: 50% 0; }
 .credential-card h2 { margin: 8px 0 14px; color: #f4efe3; }
 .credential-card p { color: #c8c8bf; line-height: 1.75; }
 .credential-card label { display: block; margin: 24px 0 8px; color: #d3b166; font-weight: 700; }
-.credential-card input {
+.credential-card input,
+.credential-card select {
   box-sizing: border-box;
   width: 100%;
   min-height: 54px;
@@ -857,6 +858,7 @@ html[dir="rtl"] .toast.is-visible { translate: 50% 0; }
   font: 16px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
   direction: ltr;
 }
+.credential-card select { appearance: auto; }
 .credential-actions { display: flex; gap: 12px; margin-top: 24px; }
 .credential-actions button { flex: 1; }
 @media (max-width: 560px) { .credential-actions { flex-direction: column-reverse; } }

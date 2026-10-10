@@ -238,6 +238,9 @@ function harness(storage = new Map()) {
     return nodes.get(selector);
   };
   const claim = element('claim'); claim.dataset.claim = 'CITIZEN';
+  const provider = element('#api-provider-select');
+  provider.value = 'openai'; provider.selectedIndex = 0;
+  provider.options = [{text:'OpenAI'}, {text:'Google Gemini'}, {text:'OpenRouter'}];
   const context = vm.createContext({ AbortController, Event,
     assert, console, setTimeout, clearTimeout,
     localStorage: {
@@ -485,7 +488,7 @@ test('participant API key drives a turn but is never stored with the session', a
   const h = harness();
   await h.run(`
     const secret='sk-test-browser-secret-123456789';
-    participantApiKey=secret;
+    participantCredentials={provider:'gemini',model:'gemini-2.5-flash',apiKey:secret};
     state.stage='role';
     state.run={mode:'live',status:'QUEUED',credential_required:true,fallback_actions:0};
     serverRun={mode:'live',status:'WAITING_FOR_HUMAN',credential_required:false,fallback_actions:0};
@@ -499,10 +502,27 @@ test('participant API key drives a turn but is never stored with the session', a
     };
     assert.equal(await driveParticipantRun(),true);
     assert.ok(submitted.includes(secret));
+    assert.ok(submitted.includes('gemini-2.5-flash'));
     saveSession();
     assert.ok(!localStorage.getItem(SESSION_KEY).includes(secret));
     await goHome();
-    assert.equal(participantApiKey,'');
+    assert.equal(participantCredentials,null);
+  `);
+});
+
+test('BYOK dialog selects an allowlisted provider and model without accepting a base URL', async () => {
+  await harness().run(`
+    const pending=requestParticipantCredentials();
+    $('#api-provider-select').value='openrouter';
+    $('#api-provider-select').selectedIndex=2;
+    $('#api-provider-select').onchange();
+    assert.equal($('#api-model-input').value,'openai/gpt-4.1-mini');
+    $('#api-key-input').value='sk-or-test-browser-secret-123456789';
+    $('#api-key-form').onsubmit({preventDefault(){}});
+    const credentials=await pending;
+    assert.deepEqual(Object.keys(credentials).sort(),['apiKey','model','provider']);
+    assert.equal(credentials.provider,'openrouter');
+    assert.equal(credentials.model,'openai/gpt-4.1-mini');
   `);
 });
 

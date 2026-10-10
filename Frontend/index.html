@@ -148,9 +148,17 @@
     <div id="toast" class="toast" role="alert"></div>
     <div id="api-key-modal" class="credential-modal" hidden>
       <form id="api-key-form" class="credential-card">
-        <p class="eyebrow">OPENAI</p>
+        <p id="api-provider-kicker" class="eyebrow">BYOK</p>
         <h2 id="api-key-title"></h2>
         <p id="api-key-help"></p>
+        <label id="api-provider-label" for="api-provider-select"></label>
+        <select id="api-provider-select">
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="openrouter">OpenRouter</option>
+        </select>
+        <label id="api-model-label" for="api-model-input"></label>
+        <input id="api-model-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required minlength="2" maxlength="120" />
         <label id="api-key-label" for="api-key-input"></label>
         <input id="api-key-input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required minlength="20" maxlength="512" />
         <div class="credential-actions">
@@ -161,6 +169,6 @@
     </div>
     <script src="/ui/journal.js?v=20261004-cloud-library" defer></script>
     <script src="/ui/archive.js?v=20261008" defer></script>
-    <script src="/ui/app.js?v=20261010-byok" defer></script>
+    <script src="/ui/app.js?v=20261010-multi-provider-byok" defer></script>
   </body>
 </html>

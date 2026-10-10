@@ -64,6 +64,7 @@ class AIRun:
     control_token: str = field(default_factory=lambda: secrets.token_urlsafe(32), repr=False)
     character_id: int | None = None
     language: str = "fa"
+    ai_provider: str | None = None
     ai_model: str | None = None
     awaiting_actions: list[str] = field(default_factory=list)
     fallback_actions: int = 0
@@ -101,6 +102,7 @@ class AIRun:
             "human_player_id": self.human_player_id,
             "character_id": self.character_id,
             "language": self.language,
+            "ai_provider": self.ai_provider,
             "ai_model": self.ai_model,
             "fallback_actions": self.fallback_actions,
             "agent_health": "DEGRADED" if self.fallback_actions else "HEALTHY",

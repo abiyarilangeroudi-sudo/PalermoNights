@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import time
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.domain import Faction
@@ -110,13 +111,20 @@ def test_interactive_game_has_one_human_and_waits_for_their_claim(seeded_api_gam
         assert public["role_claims"]["P1"] == "DETECTIVE"
 
 
-def test_byok_key_is_request_scoped_and_never_persisted(monkeypatch):
+@pytest.mark.parametrize(("provider", "model", "base_url"), [
+    ("openai", "gpt-5.6-luna", "https://api.openai.com/v1"),
+    ("gemini", "gemini-2.5-flash", None),
+    ("openrouter", "anthropic/claude-sonnet-4", "https://openrouter.ai/api/v1"),
+])
+def test_byok_key_is_request_scoped_and_provider_endpoint_is_allowlisted(
+    monkeypatch, provider, model, base_url,
+):
     secret = "sk-test-participant-secret-123456789"
     observed = {}
 
     async def one_turn(run, runner, **_):
         provider = next(iter(runner.agents.values())).provider.providers[0]
-        observed["key"] = provider.config.api_key
+        observed["config"] = provider.config
         observed["snapshot"] = json.dumps(snapshot(games.get(run.game_id), run))
         run.status = "WAITING_FOR_HUMAN"
         run.awaiting_actions = ["ROLE_CLAIM"]
@@ -131,13 +139,31 @@ def test_byok_key_is_request_scoped_and_never_persisted(monkeypatch):
         response = client.post(
             f"/game/{created['game_id']}/interactive/continue",
             headers=headers,
-            json={"player_api_key": secret},
+            json={"provider": provider, "model": model, "player_api_key": secret},
         )
         assert response.status_code == 200
-        assert observed["key"] == secret
+        assert observed["config"].provider == provider
+        assert observed["config"].model == model
+        assert observed["config"].base_url == base_url
+        assert observed["config"].api_key == secret
         assert secret not in observed["snapshot"]
         assert next(iter(ai_runs.get(created["game_id"]).runner.agents.values())).provider.provider_name == "offline"
         assert secret not in json.dumps(runtime.store.all())
+
+
+def test_byok_rejects_unknown_providers_and_client_supplied_base_urls():
+    with TestClient(app) as client:
+        created = client.post(
+            "/games/interactive",
+            json={"language": "en", "character_id": 1, "ai_mode": "luna"},
+        ).json()
+        url = f"/game/{created['game_id']}/interactive/continue"
+        headers = {"X-Player-Token": created["human"]["token"]}
+        common = {"model": "safe-model", "player_api_key": "sk-test-secret-123456789012345"}
+        assert client.post(url, headers=headers, json={**common, "provider": "unknown"}).status_code == 422
+        assert client.post(url, headers=headers, json={
+            **common, "provider": "openai", "base_url": "https://attacker.invalid",
+        }).status_code == 422
 
 
 def test_rejected_byok_key_leaves_game_retryable_and_scrubs_runner(monkeypatch):

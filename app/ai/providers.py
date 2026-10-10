@@ -327,7 +327,7 @@ def build_provider(
     }
     if config.provider == "gemini":
         return GeminiProvider(config, **kwargs)
-    if config.provider in {"hetzner", "litellm"}:
+    if config.provider in {"hetzner", "litellm", "openrouter"}:
         return OpenAICompatibleProvider(config, **kwargs)
     if config.provider == "openai":
         return OpenAIResponsesProvider(config, reasoning_effort=reasoning_effort, **kwargs)
