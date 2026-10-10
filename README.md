@@ -74,7 +74,7 @@ The browser experience is a cinematic, slide-by-slide match with one human (`P1`
 
 Role claims are deliberately limited to `CITIZEN`, `DOCTOR`, or `DETECTIVE` for every human and AI player, regardless of the player's true role.
 
-Interactive matches use `gpt-5.6-luna` for all six AI players when `OPENAI_API_KEY` is configured. Each player remains a separate `AIAgent` with its own memory, beliefs, and hypotheses. If the key is unavailable, the server keeps the match playable with deterministic fallback agents. Configure the player model independently from the optional analyst:
+Interactive matches use the human participant's own OpenAI API key for all six AI players. Each player remains a separate `AIAgent` with its own memory, beliefs, and hypotheses. The deployment's `OPENAI_API_KEY` is never used for an interactive match. Configure the player model independently from the optional analyst:
 
 ```dotenv
 OPENAI_PLAYER_MODEL=gpt-5.6-luna
@@ -87,6 +87,7 @@ The browser follows public events over Server-Sent Events (SSE), which fits the 
 ```text
 POST /games/ai
 POST /games/interactive
+POST /game/{game_id}/interactive/continue
 POST /game/{game_id}/interactive/action
 GET  /game/{game_id}/player/{player_id}/observation
 GET  /game/{game_id}/run-state
@@ -94,7 +95,7 @@ POST /game/{game_id}/run/cancel
 GET  /game/{game_id}/stream
 ```
 
-The SSE stream contains public game events and sanitized run progress only. The interactive creation response returns only the human player's token; other player tokens, private investigation results, hidden roles, model prompts, and API keys are never included.
+The SSE stream contains public game events and sanitized run progress only. The interactive creation response returns only the human player's token; other player tokens, private investigation results, hidden roles, model prompts, and API keys are never included. The browser submits its OpenAI key only to `/interactive/continue`, one AI turn at a time. The key is held in tab memory, is never written to local storage, snapshots, audits, or logs, and must be entered again after a reload. Participant-funded games are not executed by background alarms, so a server restart cannot silently switch them to the deployment owner's key.
 
 Public run progress excludes participant actions, role-specific waiting actions, and detailed failure transcripts. Public viewers see `RUNNING` while a human is deciding; the human's authenticated `GET /game/{game_id}/run-state` (with `X-Player-Token`) returns `WAITING_FOR_HUMAN`. Legal actions remain available through the authenticated observation endpoint.
 
@@ -102,7 +103,7 @@ Cancel an interactive match with its human's `X-Player-Token`. For an AI-only ma
 
 HTTP game creation rejects client-provided `seed` values. Role assignment uses server-owned system randomness. Explicit seeds remain supported only by the in-process engine for tests and offline simulations.
 
-The browser saves the active match credentials and narrative position in local storage on the same browser profile. Refreshing or reopening the page resumes the existing match, including an unread final vote/night result. Returning home preserves the active match and exposes Resume and End game controls; ending it requires confirmation and a successful server response. Speech/answer drafts and vote selections survive refresh. Home does not pause AI turns: they continue until human input or the game lifetime limit. The Python server checkpoints game state, agent memory, budgets, and action receipts in SQLite and recovers them after restart. Games created before durable storage was installed cannot be recovered from their old in-memory server after it exits.
+The browser saves the active match token and narrative position in local storage on the same browser profile, but never the OpenAI API key. Refreshing or reopening the page resumes the existing match and asks for the key again only when another AI turn is needed. Returning home preserves the active match and exposes Resume and End game controls; ending it requires confirmation and a successful server response. Speech/answer drafts and vote selections survive refresh. The Python server checkpoints game state, agent memory, budgets, and action receipts in SQLite and recovers them after restart. Games created before durable storage was installed cannot be recovered from their old in-memory server after it exits.
 
 ## API flow
 
@@ -252,8 +253,9 @@ nonfatal; failure to save authoritative state rolls back a human action.
 
 Browser requests include a 15-second deadline covering both headers and body.
 Connection recovery uses a 1–15-second backoff, retains drafts, and reconciles
-accepted action IDs before offering a retry. Local storage contains participant
-credentials, so use a trusted browser profile on shared devices.
+accepted action IDs before offering a retry. Local storage contains the
+match-scoped participant token, so use a trusted browser profile on shared
+devices. It does not contain the OpenAI API key.
 
 ## Real-browser regression tests
 

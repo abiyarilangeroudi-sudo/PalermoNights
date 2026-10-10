@@ -33,7 +33,7 @@ def snapshot(game: Game, run=None) -> dict:
     result = {'version': 1, 'game': asdict(game), 'run': None}
     if run is None:
         return result
-    excluded = {'task', 'runner', 'checkpoint', 'suspending'}
+    excluded = {'task', 'runner', 'checkpoint', 'suspending', 'drive_lock'}
     result['run'] = {f.name: getattr(run, f.name) for f in fields(run) if f.name not in excluded}
     if run.runner is None:
         return result

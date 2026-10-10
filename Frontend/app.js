@@ -157,6 +157,13 @@ const copy = {
     degraded: "اکشن جایگزین",
     networkError: "ارتباط با شهر قطع شد. دوباره تلاش کن.",
     accessDenied: "کد دسترسی بازی آنلاین نادرست است.",
+    apiKeyTitle: "با کلید OpenAI خودت بازی کن",
+    apiKeyHelp: "کلید فقط برای اجرای نوبت‌های همین بازی به سرور فرستاده می‌شود و در مرورگر، دفتر وقایع یا ذخیرهٔ بازی نگهداری نمی‌شود. پس از بازخوانی صفحه باید آن را دوباره وارد کنی.",
+    apiKeyLabel: "OpenAI API Key",
+    apiKeyPlaceholder: "sk-…",
+    apiKeyContinue: "ادامه با کلید من",
+    apiKeyCancel: "فعلاً نه",
+    apiKeyRejected: "این کلید نتوانست نوبت مدل را اجرا کند. کلید معتبر و دسترسی مدل را بررسی کن.",
     claimedRole: "نقش ادعایی",
     facts: "دفتر وقایع",
     factsTitle: "دفتر وقایع بازی",
@@ -255,6 +262,13 @@ const copy = {
     degraded: "fallback actions",
     networkError: "The connection to the city was lost. Try again.",
     accessDenied: "The online play access code is incorrect.",
+    apiKeyTitle: "Play with your own OpenAI key",
+    apiKeyHelp: "The key is sent to the server only to run turns in this game. It is never saved in the browser, case file, or game snapshot. You must enter it again after a reload.",
+    apiKeyLabel: "OpenAI API Key",
+    apiKeyPlaceholder: "sk-…",
+    apiKeyContinue: "CONTINUE WITH MY KEY",
+    apiKeyCancel: "NOT NOW",
+    apiKeyRejected: "This key could not run the model turn. Check the key and its model access.",
     claimedRole: "Claimed role",
     facts: "Case file",
     factsTitle: "Game case file",
@@ -353,6 +367,13 @@ const copy = {
     degraded: "Ersatzaktionen",
     networkError: "Die Verbindung zur Stadt wurde unterbrochen. Versuche es erneut.",
     accessDenied: "Der Zugangscode für das Online-Spiel ist falsch.",
+    apiKeyTitle: "Mit deinem OpenAI-Schlüssel spielen",
+    apiKeyHelp: "Der Schlüssel wird nur für die Züge dieses Spiels an den Server gesendet. Er wird weder im Browser noch in der Spielakte oder im Spielstand gespeichert. Nach dem Neuladen musst du ihn erneut eingeben.",
+    apiKeyLabel: "OpenAI API Key",
+    apiKeyPlaceholder: "sk-…",
+    apiKeyContinue: "MIT MEINEM SCHLÜSSEL WEITER",
+    apiKeyCancel: "JETZT NICHT",
+    apiKeyRejected: "Mit diesem Schlüssel konnte der Modellzug nicht ausgeführt werden. Prüfe Schlüssel und Modellzugriff.",
     claimedRole: "Behauptete Rolle",
     facts: "Fallakte",
     factsTitle: "Spielakte",
@@ -487,6 +508,8 @@ let syncAgain = false;
 let syncNeedsRoute = false;
 let syncTimer = null;
 let actionInFlight = false;
+let participantApiKey = "";
+let credentialDrivePromise = null;
 const SESSION_KEY = "palermo-active-session-v1";
 let recoveryTimer = null;
 let recoveryDelay = 1000;
@@ -506,6 +529,74 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
         json: async () => JSON.parse(raw), text: async () => raw };
     })(), deadline]);
   } finally { clearTimeout(timer); }
+}
+
+function requestParticipantApiKey() {
+  if (participantApiKey) return Promise.resolve(participantApiKey);
+  const modal = $("#api-key-modal");
+  const form = $("#api-key-form");
+  const input = $("#api-key-input");
+  $("#api-key-title").textContent = text("apiKeyTitle");
+  $("#api-key-help").textContent = text("apiKeyHelp");
+  $("#api-key-label").textContent = text("apiKeyLabel");
+  input.placeholder = text("apiKeyPlaceholder");
+  $("#api-key-submit").textContent = text("apiKeyContinue");
+  $("#api-key-cancel").textContent = text("apiKeyCancel");
+  modal.hidden = false;
+  document.body.classList.add("has-credential-modal");
+  input.value = "";
+  window.setTimeout(() => input.focus(), 0);
+  return new Promise((resolve) => {
+    const finish = (value) => {
+      input.value = "";
+      modal.hidden = true;
+      document.body.classList.remove("has-credential-modal");
+      form.onsubmit = null;
+      $("#api-key-cancel").onclick = null;
+      resolve(value);
+    };
+    form.onsubmit = (event) => {
+      event.preventDefault();
+      const value = input.value.trim();
+      if (value.length < 20) return;
+      participantApiKey = value;
+      finish(value);
+    };
+    $("#api-key-cancel").onclick = () => finish(null);
+  });
+}
+
+async function driveParticipantRun() {
+  if (!state.gameId || state.archiveMode || state.run?.mode !== "live"
+      || !state.run?.credential_required) return true;
+  if (credentialDrivePromise) return credentialDrivePromise;
+  const gameId = state.gameId;
+  credentialDrivePromise = (async () => {
+    while (state.gameId === gameId && ["QUEUED", "RUNNING"].includes(state.run?.status)) {
+      const apiKey = await requestParticipantApiKey();
+      if (!apiKey) return false;
+      const response = await fetchWithTimeout(`/game/${gameId}/interactive/continue`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Player-Token": state.token },
+        body: JSON.stringify({ player_api_key: apiKey }),
+      }, 75000);
+      if (response.status === 422) {
+        participantApiKey = "";
+        toast(text("apiKeyRejected"));
+        continue;
+      }
+      if (!response.ok) {
+        const error = new Error("credential turn failed");
+        error.status = response.status;
+        throw error;
+      }
+      state.run = await response.json();
+      await syncState(false);
+    }
+    return true;
+  })();
+  try { return await credentialDrivePromise; }
+  finally { credentialDrivePromise = null; }
 }
 
 function scheduleRecovery() {
@@ -589,6 +680,7 @@ async function restoreSession() {
     showScreen("story-screen");
     restoreStory(saved.stage);
     connectStream(`/game/${state.gameId}/stream`);
+    if (!await driveParticipantRun()) await goHome();
   } catch (error) {
     if ([401, 404].includes(error.status)) {
       clearSession();
@@ -1002,14 +1094,7 @@ async function startGame(characterId) {
         ai_mode: "luna",
       }),
     });
-    let response = await createRequest();
-    if (response.status === 401) {
-      const key = window.prompt({ fa: "کد دسترسی بازی آنلاین را وارد کن", en: "Enter the online play access code", de: "Zugangscode für das Online-Spiel eingeben" }[state.lang]);
-      if (!key) return;
-      const access = await fetchWithTimeout("/session", { method: "POST", headers: { "X-Play-Key": key } });
-      if (!access.ok) throw new Error("access_denied");
-      response = await createRequest();
-    }
+    const response = await createRequest();
     if (!response.ok) {
       const error = new Error(await response.text()); error.status = response.status; throw error;
     }
@@ -1039,6 +1124,7 @@ async function startGame(characterId) {
     await syncState();
     showScreen("story-screen");
     showRoleReveal();
+    if (!await driveParticipantRun()) await goHome();
   } catch (error) {
     console.error(error);
     toast(error.message === "access_denied" ? text("accessDenied") : error.status === 429 ? ({ fa: "ظرفیت یا سهمیهٔ بازی پر شده؛ بازی قبلی را ادامه بده یا کمی بعد تلاش کن.", en: "Game capacity or quota reached. Resume your game or try again later.", de: "Spiellimit erreicht. Bestehendes Spiel fortsetzen oder später versuchen." }[state.lang]) : text("networkError"));
@@ -1770,6 +1856,7 @@ function showMorning(event) {
 }
 
 function showGameOver() {
+  participantApiKey = "";
   state.stage = "game_over";
   const winner = state.public.winner ? text("roles")[state.public.winner] || state.public.winner : "—";
   renderStory({
@@ -1826,6 +1913,7 @@ async function submitAndAdvance(payload, waitingStage, slide) {
     delete state.drafts[submittedDraftKey];
     if (state.gameId !== gameId || state.stage === "home") return;
     showWaiting(slide);
+    if (!await driveParticipantRun()) await goHome();
   } catch (error) {
     if (state.gameId !== gameId || state.stage === "home") return;
     // Reconcile ambiguous network failures before offering a retry.
@@ -1944,7 +2032,7 @@ async function endSavedGame() {
     });
     await response.json();
     if (!response.ok && ![404, 409].includes(response.status)) throw new Error("cancel_failed");
-    clearSession(); state.gameId = null; state.token = null; state.pendingAction = null;
+    clearSession(); participantApiKey = ""; state.gameId = null; state.token = null; state.pendingAction = null;
     refreshResumeControls(); return true;
   } catch { toast(text("networkError")); return false; }
 }
@@ -1956,6 +2044,7 @@ async function goHome() {
   if (state.eventSource) state.eventSource.close();
   window.clearTimeout(syncTimer); window.clearTimeout(recoveryTimer); recoveryTimer = null;
   syncAgain = false; syncNeedsRoute = false;
+  participantApiKey = "";
   state.stage = "home"; state.archiveMode = false;
   renderArchives(); refreshResumeControls(); showScreen("home");
 }

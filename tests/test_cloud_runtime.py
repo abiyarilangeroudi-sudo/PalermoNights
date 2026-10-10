@@ -159,6 +159,12 @@ async def test_worker_alarm_initialization_and_recovery(monkeypatch):
         await worker.alarm()
     assert ai_runs.get(game.game_id).status=='COMPLETED'
     assert storage.next_alarm is None
+    participant_game=runtime.engine.create_game([PlayerType.AI]*7,seed=13);games.add(participant_game)
+    participant_run=AIRun(participant_game.game_id,'live',credential_mode='participant');ai_runs.add(participant_run)
+    participant_runner=build_runner(runtime.engine,participant_game,mode='offline',settings=None,live_action_budget=0)
+    runtime.start(participant_run,participant_runner,schedule=False)
+    await worker.alarm()
+    assert participant_run.status=='QUEUED' and participant_run.current_step==0
 
 @pytest.mark.anyio
 async def test_cancelling_cloud_turn_during_provider_wait_does_not_commit_action():

@@ -246,7 +246,7 @@ function harness(storage = new Map()) {
       removeItem: key => storage.delete(key),
     },
     document: {
-      documentElement: {}, querySelector: element,
+      documentElement: {}, body: element('body'), querySelector: element,
       querySelectorAll: selector => selector === '[data-claim]' ? [claim] : [],
     },
     window: { setTimeout(){}, clearTimeout(){}, setInterval(){}, clearInterval(){}, matchMedia(){return {matches:true};} },
@@ -478,6 +478,31 @@ test('wrong online access code is distinguished from a network failure', async (
   await harness().run(`
     state.lang='fa';
     assert.equal(text('accessDenied'),'کد دسترسی بازی آنلاین نادرست است.');
+  `);
+});
+
+test('participant API key drives a turn but is never stored with the session', async () => {
+  const h = harness();
+  await h.run(`
+    const secret='sk-test-browser-secret-123456789';
+    participantApiKey=secret;
+    state.stage='role';
+    state.run={mode:'live',status:'QUEUED',credential_required:true,fallback_actions:0};
+    serverRun={mode:'live',status:'WAITING_FOR_HUMAN',credential_required:false,fallback_actions:0};
+    let submitted='';
+    fetch=async(url,options)=>{
+      if(url.endsWith('/interactive/continue')) {
+        submitted=options.body;
+        return {ok:true,status:200,json:async()=>serverRun};
+      }
+      return serverResponse(url);
+    };
+    assert.equal(await driveParticipantRun(),true);
+    assert.ok(submitted.includes(secret));
+    saveSession();
+    assert.ok(!localStorage.getItem(SESSION_KEY).includes(secret));
+    await goHome();
+    assert.equal(participantApiKey,'');
   `);
 });
 

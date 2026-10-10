@@ -72,10 +72,12 @@ class AIRun:
     owner: str = "local"
     live_action_budget: int = 20
     receipts: dict[str, Any] = field(default_factory=dict, repr=False)
+    credential_mode: str = "server"
     checkpoint: Any = field(default=None, repr=False)
     suspending: bool = False
     task: Any = field(default=None, repr=False)
     runner: Any = field(default=None, repr=False)
+    drive_lock: Any = field(default=None, repr=False)
 
     def public_dict(self, *, participant: bool = False) -> dict[str, Any]:
         return {
@@ -102,6 +104,10 @@ class AIRun:
             "ai_model": self.ai_model,
             "fallback_actions": self.fallback_actions,
             "agent_health": "DEGRADED" if self.fallback_actions else "HEALTHY",
+            **({
+                "credential_required": self.mode == "live" and self.credential_mode == "participant"
+                and self.status in {"QUEUED", "RUNNING"},
+            } if participant else {}),
         }
 
 
@@ -134,6 +140,7 @@ def build_runner(
     language: str = "fa",
     player_names: dict[str, str] | None = None,
     on_entry=None,
+    allow_fallback: bool = True,
 ) -> HeadlessGameRunner:
     gate = None
     if mode == "live" and settings and settings.typesafe:
@@ -172,6 +179,7 @@ def build_runner(
                 gate_decision_budget=live_action_budget,
                 language=language,
                 player_names=player_names,
+                allow_fallback=allow_fallback,
             )
         else:
             agents[player_id] = AIAgent(
@@ -183,7 +191,13 @@ def build_runner(
     return HeadlessGameRunner(engine, game, agents, on_entry=on_entry)
 
 
-async def execute_run(run: AIRun, runner: HeadlessGameRunner, *, batch_steps: int | None = None) -> None:
+async def execute_run(
+    run: AIRun,
+    runner: HeadlessGameRunner,
+    *,
+    batch_steps: int | None = None,
+    propagate_errors: bool = False,
+) -> None:
     run.status = "RUNNING"
     run.awaiting_actions.clear()
     if run.started_at is None:
@@ -213,6 +227,8 @@ async def execute_run(run: AIRun, runner: HeadlessGameRunner, *, batch_steps: in
         run.finished_at = datetime.now(UTC).isoformat()
         record_audit(run.game_id, {"type": "RUN_CANCELLED"})
     except Exception as exc:
+        if propagate_errors:
+            raise
         run.status = "FAILED"
         run.error = type(exc).__name__
         run.finished_at = datetime.now(UTC).isoformat()

@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import json
 import time
 
 from fastapi.testclient import TestClient
 
 from app.domain import Faction
-from app.main import ai_runs, app, games
+from app.ai.providers import ProviderError
+import app.main as main_module
+from app.main import ai_runs, app, games, runtime
+from app.persistence import snapshot
 
 
 def test_offline_ai_game_lifecycle_and_public_stream():
@@ -104,6 +108,60 @@ def test_interactive_game_has_one_human_and_waits_for_their_claim(seeded_api_gam
 
         public = client.get(created["public_state_url"]).json()
         assert public["role_claims"]["P1"] == "DETECTIVE"
+
+
+def test_byok_key_is_request_scoped_and_never_persisted(monkeypatch):
+    secret = "sk-test-participant-secret-123456789"
+    observed = {}
+
+    async def one_turn(run, runner, **_):
+        provider = next(iter(runner.agents.values())).provider.providers[0]
+        observed["key"] = provider.config.api_key
+        observed["snapshot"] = json.dumps(snapshot(games.get(run.game_id), run))
+        run.status = "WAITING_FOR_HUMAN"
+        run.awaiting_actions = ["ROLE_CLAIM"]
+
+    monkeypatch.setattr(main_module, "execute_run", one_turn)
+    with TestClient(app) as client:
+        created = client.post(
+            "/games/interactive",
+            json={"language": "en", "character_id": 1, "ai_mode": "luna"},
+        ).json()
+        headers = {"X-Player-Token": created["human"]["token"]}
+        response = client.post(
+            f"/game/{created['game_id']}/interactive/continue",
+            headers=headers,
+            json={"player_api_key": secret},
+        )
+        assert response.status_code == 200
+        assert observed["key"] == secret
+        assert secret not in observed["snapshot"]
+        assert next(iter(ai_runs.get(created["game_id"]).runner.agents.values())).provider.provider_name == "offline"
+        assert secret not in json.dumps(runtime.store.all())
+
+
+def test_rejected_byok_key_leaves_game_retryable_and_scrubs_runner(monkeypatch):
+    secret = "sk-test-rejected-secret-123456789"
+
+    async def reject_turn(*_, **__):
+        raise ProviderError("invalid key")
+
+    monkeypatch.setattr(main_module, "execute_run", reject_turn)
+    with TestClient(app) as client:
+        created = client.post(
+            "/games/interactive",
+            json={"language": "en", "character_id": 1, "ai_mode": "luna"},
+        ).json()
+        response = client.post(
+            f"/game/{created['game_id']}/interactive/continue",
+            headers={"X-Player-Token": created["human"]["token"]},
+            json={"player_api_key": secret},
+        )
+        assert response.status_code == 422
+        run = ai_runs.get(created["game_id"])
+        assert run.status == "QUEUED"
+        assert next(iter(run.runner.agents.values())).provider.provider_name == "offline"
+        assert secret not in json.dumps(runtime.store.all())
 
 
 def test_interactive_offline_match_resumes_until_game_over():

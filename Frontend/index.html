@@ -146,8 +146,21 @@
       <p id="loading-text">شهر در حال بیدار شدن است…</p>
     </div>
     <div id="toast" class="toast" role="alert"></div>
+    <div id="api-key-modal" class="credential-modal" hidden>
+      <form id="api-key-form" class="credential-card">
+        <p class="eyebrow">OPENAI</p>
+        <h2 id="api-key-title"></h2>
+        <p id="api-key-help"></p>
+        <label id="api-key-label" for="api-key-input"></label>
+        <input id="api-key-input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required minlength="20" maxlength="512" />
+        <div class="credential-actions">
+          <button id="api-key-cancel" class="secondary-button" type="button"></button>
+          <button id="api-key-submit" class="primary-button" type="submit"></button>
+        </div>
+      </form>
+    </div>
     <script src="/ui/journal.js?v=20261004-cloud-library" defer></script>
     <script src="/ui/archive.js?v=20261008" defer></script>
-    <script src="/ui/app.js?v=20261004-cloud-library" defer></script>
+    <script src="/ui/app.js?v=20261010-byok" defer></script>
   </body>
 </html>

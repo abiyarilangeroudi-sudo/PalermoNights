@@ -109,13 +109,18 @@ def test_restore_preserves_agent_memory_budget_and_private_night_state():
         assert client.get(body['observation_url'], headers=headers).status_code == 200
 
 
-def test_live_creation_requires_signed_session_and_rejects_before_provider(monkeypatch):
+def test_server_funded_live_creation_requires_session_but_byok_does_not(monkeypatch):
     monkeypatch.setenv('PALERMO_PLAY_KEY', 'test-access-code')
     monkeypatch.delenv('PALERMO_ALLOW_LOCAL_LIVE', raising=False)
     with TestClient(app) as client:
-        for path, body in [('/games/ai', {'mode':'live'}), ('/games/interactive', {'character_id':1})]:
-            assert client.post(path, json=body).status_code == 401
-        assert not ai_runs._runs
+        assert client.post('/games/ai', json={'mode':'live'}).status_code == 401
+        interactive = client.post('/games/interactive', json={'character_id':1})
+        assert interactive.status_code == 202
+        body = interactive.json()
+        assert body['credential_required'] is True
+        assert ai_runs.get(body['game_id']).credential_mode == 'participant'
+        client.post(f"/game/{body['game_id']}/run/cancel",
+                    headers={'X-Player-Token': body['human']['token']})
         assert client.post('/session', headers={'X-Play-Key':'wrong'}).status_code == 401
         response = client.post('/session', headers={'X-Play-Key':'test-access-code'})
         assert response.status_code == 200
@@ -123,7 +128,7 @@ def test_live_creation_requires_signed_session_and_rejects_before_provider(monke
         monkeypatch.setenv('PALERMO_LIVE_GAMES_PER_DAY', '1')
         runtime.store.record_admission(('another-client', 1, time.time()))
         assert client.post('/games/ai', json={'mode':'live'}).status_code == 429
-        assert not ai_runs._runs
+        assert all(run.status == 'CANCELLED' for run in ai_runs._runs.values())
 
 
 def test_creation_limits_survive_restart_and_cannot_be_bypassed_with_header(monkeypatch):

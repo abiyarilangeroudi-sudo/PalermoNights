@@ -25,7 +25,7 @@ async def ai_config_health(request: Request):
     api_key = getattr(env, "OPENAI_API_KEY", None) if env is not None else None
     model = getattr(env, "OPENAI_PLAYER_MODEL", None) if env is not None else None
     return {
-        "release": "2026-10-04-cloud-library",
+        "release": "2026-10-10-byok",
         "openai_api_key_configured": bool(api_key),
         "openai_player_model_configured": bool(model),
     }
@@ -93,7 +93,8 @@ class GameServer(DurableObject):
             await self.storage.deleteAlarm()
             return
         now = int(time.time() * 1000)
-        when = now + 100 if any(r.status in {'RUNNING', 'QUEUED'} for r in active) else max(now + 1000, int(min(datetime.fromisoformat(r.created_at).timestamp() for r in active) * 1000) + limit('PALERMO_GAME_TTL_SECONDS', 86400) * 1000)
+        runnable = [r for r in active if r.status in {'RUNNING', 'QUEUED'} and r.credential_mode != 'participant']
+        when = now + 100 if runnable else max(now + 1000, int(min(datetime.fromisoformat(r.created_at).timestamp() for r in active) * 1000) + limit('PALERMO_GAME_TTL_SECONDS', 86400) * 1000)
         previous = await self.storage.getAlarm()
         if previous is None or previous > when:
             await self.storage.setAlarm(when)
@@ -112,7 +113,7 @@ class GameServer(DurableObject):
         await self.initialize()
         async with self.alarm_lock:
             await runtime.expire()
-            runnable = [r for r in ai_runs._runs.values() if r.status in {'RUNNING', 'QUEUED'}]
+            runnable = [r for r in ai_runs._runs.values() if r.status in {'RUNNING', 'QUEUED'} and r.credential_mode != 'participant']
             if runnable:
                 # A persisted watchdog survives eviction during the provider request.
                 await self.storage.setAlarm(int(time.time() * 1000) + 120000)

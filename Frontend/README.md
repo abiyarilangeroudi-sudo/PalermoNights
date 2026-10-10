@@ -39,4 +39,4 @@ In the discussion and answer text field, typing `@` opens a portrait-and-name li
 
 Visible player names in scene text, questions, outcomes, and journal entries carry a small profile portrait, including Persian first-name references. Player selection menus in the discussion, vote form, and journal filter also show portraits beside each option.
 
-The browser should consume only player-scoped API responses. Provider credentials remain server-side.
+The browser consumes only player-scoped API responses. A participant OpenAI key stays in tab memory, is sent only to the authenticated turn endpoint, and is cleared on reload, home, cancellation, or game over. It must never enter local storage or an archived report.

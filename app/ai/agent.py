@@ -72,8 +72,10 @@ class AIAgent:
         language: str = "fa",
         player_names: dict[str, str] | None = None,
         require_assessment: bool = False,
+        allow_fallback: bool = True,
     ) -> None:
         self.require_assessment = require_assessment
+        self.allow_fallback = allow_fallback
         self.player_id = player_id
         self.provider = provider
         self.max_output_tokens = max_output_tokens
@@ -128,6 +130,8 @@ class AIAgent:
             return decision
         except (ProviderError, TimeoutError, ValueError, KeyError, TypeError) as exc:
             self.last_failure = self._safe_failure(exc)
+            if not self.allow_fallback:
+                raise
             fallback = self.fallback_decision(observation)
             return checked_decision(self, await self._gate_target(fallback, observation), {}, observation)
 

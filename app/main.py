@@ -15,7 +15,7 @@ from typing import Any, Literal
 from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 from .ai.config import AISettings, ConfigurationError
 from .ai.service import (
@@ -25,6 +25,7 @@ from .ai.service import (
     execute_run,
     audit_entry,
 )
+from .ai.providers import ProviderError
 from .domain import Action, CLAIMABLE_ROLES, PlayerType, RuleViolation
 from .engine import GameEngine
 from .repository import InMemoryGameRepository
@@ -63,6 +64,11 @@ class CreateInteractiveGameRequest(BaseModel):
     language: Literal["fa", "en", "de"] = "fa"
     character_id: int = Field(ge=1, le=7)
     ai_mode: Literal["luna", "offline"] = "luna"
+
+
+class ContinueInteractiveGameRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    player_api_key: SecretStr = Field(min_length=20, max_length=512)
 
 
 @asynccontextmanager
@@ -173,7 +179,7 @@ async def create_session(request: Request, response: Response):
 @app.get("/health")
 async def health(request: Request) -> dict[str, str]:
     binding = getattr(request.scope.get("env"), "CF_VERSION_METADATA", None)
-    return {"status": "ok", "release": "2026-10-04-cloud-library",
+    return {"status": "ok", "release": "2026-10-10-byok",
             "deployment_id": str(getattr(binding, "id", "local")),
             "storage": "durable-object" if runtime.external_scheduler else "sqlite"}
 
@@ -245,23 +251,14 @@ async def create_ai_game(
 async def create_interactive_game(
     request: CreateInteractiveGameRequest, http_request: Request
 ) -> dict[str, Any]:
-    owner = admission.admit(http_request, live=request.ai_mode == "luna")
-    settings = None
+    # Participant-funded games do not consume a deployment provider credential.
+    owner = admission.admit(http_request)
     mode = "offline"
     ai_model = "deterministic-fallback"
     if request.ai_mode == "luna":
-        try:
-            runtime_environment = request_ai_environment(http_request)
-            settings = AISettings.for_openai_players(
-                player_count=6,
-                env_file=".env" if runtime_environment is None else None,
-                environ=runtime_environment,
-            )
-            mode = "live"
-            ai_model = settings.player_providers[0].model
-        except ConfigurationError:
-            # The game remains playable when a deployment has no OpenAI key.
-            mode = "offline"
+        runtime_environment = request_ai_environment(http_request) or os.environ
+        mode = "live"
+        ai_model = runtime_environment.get("OPENAI_PLAYER_MODEL", "gpt-5.6-luna")
 
     game = engine.create_game(
         [PlayerType.HUMAN, *([PlayerType.AI] * 6)],
@@ -279,19 +276,20 @@ async def create_interactive_game(
         ai_model=ai_model,
         owner=owner,
         live_action_budget=limit("PALERMO_DECISIONS_PER_AGENT", 20),
+        credential_mode="participant" if mode == "live" else "server",
     )
     runner = build_runner(
         engine,
         game,
-        mode=mode,
-        settings=settings,
+        mode="offline",
+        settings=None,
         live_action_budget=run.live_action_budget,
         language=request.language,
         player_names=interactive_player_names(request.character_id),
     )
     run.runner = runner
     ai_runs.add(run)
-    runtime.start(run, runner)
+    runtime.start(run, runner, schedule=mode != "live")
     return {
         "game_id": game.game_id,
         "status": run.status,
@@ -299,6 +297,7 @@ async def create_interactive_game(
         "character_id": request.character_id,
         "ai_mode": mode,
         "ai_model": ai_model,
+        "credential_required": mode == "live",
         "human": {"player_id": human.player_id, "token": human.token},
         "public_state_url": f"/game/{game.game_id}/public-state",
         "private_state_url": (
@@ -310,6 +309,56 @@ async def create_interactive_game(
         "run_state_url": f"/game/{game.game_id}/run-state",
         "stream_url": f"/game/{game.game_id}/stream",
     }
+
+
+def participant_ai_settings(http_request: Request, api_key: str) -> AISettings:
+    """Create request-scoped OpenAI settings without trusting a deployment base URL."""
+    values = dict(request_ai_environment(http_request) or os.environ)
+    values["OPENAI_API_KEY"] = api_key
+    values["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+    return AISettings.for_openai_players(player_count=6, env_file=None, environ=values)
+
+
+@app.post("/game/{game_id}/interactive/continue")
+async def continue_interactive_game(
+    game_id: str,
+    request: ContinueInteractiveGameRequest,
+    http_request: Request,
+    x_player_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    game = games.get(game_id)
+    run = ai_runs.get(game_id)
+    if run.human_player_id is None or run.credential_mode != "participant":
+        raise HTTPException(status_code=409, detail="participant credentials are not used by this game")
+    engine.authenticate(game, run.human_player_id, x_player_token)
+    if run.status not in {"QUEUED", "RUNNING"}:
+        return run.public_dict(participant=True)
+    if run.drive_lock is None:
+        run.drive_lock = asyncio.Lock()
+    async with run.drive_lock:
+        if run.status not in {"QUEUED", "RUNNING"}:
+            return run.public_dict(participant=True)
+        before = copy.deepcopy(snapshot(game, run))
+        try:
+            settings = participant_ai_settings(http_request, request.player_api_key.get_secret_value())
+            runner = runtime.replace_runner(
+                run, mode="live", settings=settings, allow_fallback=False,
+            )
+            await execute_run(run, runner, batch_steps=1, propagate_errors=True)
+        except Exception as exc:
+            runtime.rollback(run, before)
+            runtime.replace_runner(run, mode="offline")
+            runtime.save(game_id)
+            status = 422 if isinstance(
+                exc, (ConfigurationError, ProviderError, TimeoutError, ValueError, KeyError, TypeError)
+            ) else 502
+            raise HTTPException(
+                status_code=status,
+                detail="The supplied OpenAI API key could not complete this turn",
+            ) from None
+        runtime.replace_runner(run, mode="offline")
+        runtime.save(game_id)
+        return run.public_dict(participant=True)
 
 
 @app.get("/game/{game_id}/public-state")
