@@ -316,6 +316,9 @@ npx wrangler secret put OPENAI_API_KEY
 The Worker stores versioned snapshots, action receipts, provider-budget reservations,
 admissions, audits and lesson candidates in Durable Object SQL. Bounded alarm turns
 resume queued games after eviction without depending on a detached asyncio task.
+Static `/ui/*` assets bypass the singleton Durable Object so frontend releases and
+cache-busted scripts become available immediately while stateful API traffic remains
+strongly ordered through the object.
 The existing named object is retained; this release does not migrate games to new IDs.
 Game state that an older deployment never persisted cannot be recovered by this release.
 

@@ -4,6 +4,7 @@ import os
 import asyncio
 import time
 import json
+from urllib.parse import urlsplit
 
 from fastapi import Request
 from fastapi.responses import Response
@@ -123,8 +124,12 @@ class GameServer(DurableObject):
 
 
 class Default(WorkerEntrypoint):
-    """Route every request through the singleton stateful game server."""
+    """Serve immutable UI assets directly and route stateful API calls to the game server."""
 
     async def fetch(self, request):
+        path = urlsplit(str(request.url)).path
+        if request.method in {"GET", "HEAD"} and (path == "/ui" or path.startswith("/ui/")):
+            asset_url = f"https://assets.local{_frontend_asset_path(path)}"
+            return await self.env.ASSETS.fetch(asset_url)
         server = self.env.GAME_SERVER.getByName("palermo-nights")
         return await server.fetch(request.js_object)
