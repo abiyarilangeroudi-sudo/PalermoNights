@@ -161,6 +161,12 @@
         <input id="api-model-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required minlength="2" maxlength="120" />
         <label id="api-key-label" for="api-key-input"></label>
         <input id="api-key-input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required minlength="20" maxlength="512" />
+        <label class="credential-remember" for="api-key-remember">
+          <input id="api-key-remember" type="checkbox" />
+          <span id="api-key-remember-label"></span>
+        </label>
+        <p id="api-key-storage-help" class="credential-storage-help"></p>
+        <button id="api-key-forget" class="credential-forget" type="button"></button>
         <div class="credential-actions">
           <button id="api-key-cancel" class="secondary-button" type="button"></button>
           <button id="api-key-submit" class="primary-button" type="submit"></button>
@@ -169,6 +175,6 @@
     </div>
     <script src="/ui/journal.js?v=20261004-cloud-library" defer></script>
     <script src="/ui/archive.js?v=20261008" defer></script>
-    <script src="/ui/app.js?v=20261010-multi-provider-byok" defer></script>
+    <script src="/ui/app.js?v=20261010-remembered-byok-dialogue" defer></script>
   </body>
 </html>

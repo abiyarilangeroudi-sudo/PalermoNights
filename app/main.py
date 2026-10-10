@@ -182,7 +182,7 @@ async def create_session(request: Request, response: Response):
 @app.get("/health")
 async def health(request: Request) -> dict[str, str]:
     binding = getattr(request.scope.get("env"), "CF_VERSION_METADATA", None)
-    return {"status": "ok", "release": "2026-10-10-multi-provider-byok",
+    return {"status": "ok", "release": "2026-10-10-remembered-byok-dialogue",
             "deployment_id": str(getattr(binding, "id", "local")),
             "storage": "durable-object" if runtime.external_scheduler else "sqlite"}
 

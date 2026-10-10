@@ -28,6 +28,14 @@ class StaticProvider:
         return self.result
 
 
+def test_agent_prompt_uses_restrained_crime_dialogue_without_noir_cliches() -> None:
+    prompt = AIAgent("P2", OfflineProvider(), language="fa")._system_prompt()
+
+    assert "restrained crime-film conversation" in prompt
+    assert "short, tense, concrete, and natural" in prompt
+    assert "Avoid melodrama, stock noir lines" in prompt
+
+
 def test_discussion_schema_caps_visible_agent_text() -> None:
     agent = AIAgent("P2", OfflineProvider())
     observation = Observation(

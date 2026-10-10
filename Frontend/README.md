@@ -39,4 +39,4 @@ In the discussion and answer text field, typing `@` opens a portrait-and-name li
 
 Visible player names in scene text, questions, outcomes, and journal entries carry a small profile portrait, including Persian first-name references. Player selection menus in the discussion, vote form, and journal filter also show portraits beside each option.
 
-The browser consumes only player-scoped API responses. A participant chooses OpenAI, Gemini, or OpenRouter plus a model name. The provider key stays in tab memory, is sent only to the authenticated turn endpoint, and is cleared on reload, home, cancellation, or game over. It must never enter local storage or an archived report.
+The browser consumes only player-scoped API responses. After starting a new game and before choosing a character, a participant chooses OpenAI, Gemini, or OpenRouter plus a model name. By default the provider key stays in tab memory. The player may explicitly remember it in browser local storage on a personal device and can remove it from the same dialog. Credentials are sent only to the authenticated turn endpoint and never enter the active-game snapshot, journal, or archived report.

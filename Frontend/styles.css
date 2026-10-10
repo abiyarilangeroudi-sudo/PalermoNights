@@ -859,6 +859,37 @@ html[dir="rtl"] .toast.is-visible { translate: 50% 0; }
   direction: ltr;
 }
 .credential-card select { appearance: auto; }
+.credential-card .credential-remember {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 20px 0 6px;
+  color: #f4efe3;
+  cursor: pointer;
+}
+.credential-card .credential-remember input {
+  flex: 0 0 auto;
+  width: 20px;
+  min-height: 20px;
+  margin: 2px 0 0;
+  accent-color: #d3b166;
+}
+.credential-card .credential-storage-help {
+  margin: 0;
+  color: #9da29e;
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+.credential-forget {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  color: #d3b166;
+  background: transparent;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
 .credential-actions { display: flex; gap: 12px; margin-top: 24px; }
 .credential-actions button { flex: 1; }
 @media (max-width: 560px) { .credential-actions { flex-direction: column-reverse; } }

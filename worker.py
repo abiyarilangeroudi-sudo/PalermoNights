@@ -25,7 +25,7 @@ async def ai_config_health(request: Request):
     api_key = getattr(env, "OPENAI_API_KEY", None) if env is not None else None
     model = getattr(env, "OPENAI_PLAYER_MODEL", None) if env is not None else None
     return {
-        "release": "2026-10-10-multi-provider-byok",
+        "release": "2026-10-10-remembered-byok-dialogue",
         "openai_api_key_configured": bool(api_key),
         "openai_player_model_configured": bool(model),
     }

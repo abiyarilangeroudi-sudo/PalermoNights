@@ -53,7 +53,7 @@ Run a bounded integration match. By default each agent gets one remote model dec
 
 Use `--live-action-budget 0` only when an intentionally unbounded, fully remote match is desired. Each decision has a separate hard deadline even when provider failover is configured.
 
-Never expose `.env` or any provider key to a browser. `.env` is ignored by Git; `.env.example` contains only safe placeholders.
+Never expose `.env` or a deployment-owned provider key to a browser. Participant BYOK credentials reach the browser only when that participant enters or explicitly remembers their own key. `.env` is ignored by Git; `.env.example` contains only safe placeholders.
 
 ## Run locally
 
@@ -95,7 +95,7 @@ POST /game/{game_id}/run/cancel
 GET  /game/{game_id}/stream
 ```
 
-The SSE stream contains public game events and sanitized run progress only. The interactive creation response returns only the human player's token; other player tokens, private investigation results, hidden roles, model prompts, and API keys are never included. The browser submits its provider choice, model, and key only to `/interactive/continue`, one AI turn at a time. Provider URLs are server-controlled: OpenAI uses `api.openai.com`, Gemini uses `generativelanguage.googleapis.com`, and OpenRouter uses `openrouter.ai`. Arbitrary base URLs are rejected. The key is held in tab memory, is never written to local storage, snapshots, audits, or logs, and must be entered again after a reload. Participant-funded games are not executed by background alarms, so a server restart cannot silently switch them to a deployment key.
+The SSE stream contains public game events and sanitized run progress only. The interactive creation response returns only the human player's token; other player tokens, private investigation results, hidden roles, model prompts, and API keys are never included. The browser submits its provider choice, model, and key only to `/interactive/continue`, one AI turn at a time. Provider URLs are server-controlled: OpenAI uses `api.openai.com`, Gemini uses `generativelanguage.googleapis.com`, and OpenRouter uses `openrouter.ai`. Arbitrary base URLs are rejected. The key stays in tab memory by default; a player may explicitly remember it in browser local storage on a personal device and remove it from the provider dialog. It is never written to game snapshots, audits, logs, journals, or archived reports. Participant-funded games are not executed by background alarms, so a server restart cannot silently switch them to a deployment key.
 
 Public run progress excludes participant actions, role-specific waiting actions, and detailed failure transcripts. Public viewers see `RUNNING` while a human is deciding; the human's authenticated `GET /game/{game_id}/run-state` (with `X-Player-Token`) returns `WAITING_FOR_HUMAN`. Legal actions remain available through the authenticated observation endpoint.
 
@@ -103,7 +103,7 @@ Cancel an interactive match with its human's `X-Player-Token`. For an AI-only ma
 
 HTTP game creation rejects client-provided `seed` values. Role assignment uses server-owned system randomness. Explicit seeds remain supported only by the in-process engine for tests and offline simulations.
 
-The browser saves the active match token and narrative position in local storage on the same browser profile, but never a provider API key. The non-secret provider and model choice are checkpointed with the run. Refreshing or reopening the page resumes the existing match and asks for the key again only when another AI turn is needed. Returning home preserves the active match and exposes Resume and End game controls; ending it requires confirmation and a successful server response. Speech/answer drafts and vote selections survive refresh. The Python server checkpoints game state, agent memory, budgets, and action receipts in SQLite and recovers them after restart. Games created before durable storage was installed cannot be recovered from their old in-memory server after it exits.
+The browser saves the active match token and narrative position in local storage on the same browser profile. Remembering a provider key is a separate, explicit opt-in. The non-secret provider and model choice are checkpointed with the run. Refreshing or reopening the page resumes the existing match and asks for the key again only when no remembered key is available and another AI turn is needed. Returning home preserves the active match and exposes Resume and End game controls; ending it requires confirmation and a successful server response. Speech/answer drafts and vote selections survive refresh. The Python server checkpoints game state, agent memory, budgets, and action receipts in SQLite and recovers them after restart. Games created before durable storage was installed cannot be recovered from their old in-memory server after it exits.
 
 ## API flow
 

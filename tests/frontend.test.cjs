@@ -526,6 +526,49 @@ test('BYOK dialog selects an allowlisted provider and model without accepting a 
   `);
 });
 
+test('BYOK dialog remembers and forgets an opted-in provider key', async () => {
+  await harness().run(`
+    const secret='sk-or-remembered-browser-secret-123456789';
+    const pending=requestParticipantCredentials({force:true});
+    $('#api-provider-select').value='openrouter';
+    $('#api-provider-select').selectedIndex=2;
+    $('#api-provider-select').onchange();
+    $('#api-key-input').value=secret;
+    $('#api-key-remember').checked=true;
+    $('#api-key-form').onsubmit({preventDefault(){}});
+    assert.equal((await pending).apiKey,secret);
+    assert.equal(readStored(PROVIDER_CREDENTIALS_KEY,null).apiKey,secret);
+    state.stage='role'; saveSession();
+    assert.ok(!localStorage.getItem(SESSION_KEY).includes(secret));
+    participantCredentials=null; participantCredentialDraft=null;
+    resetTransientParticipantCredentials();
+    assert.equal(participantCredentials.provider,'openrouter');
+    assert.equal(participantCredentials.apiKey,secret);
+    const edit=requestParticipantCredentials({force:true});
+    assert.equal($('#api-key-input').value,secret);
+    assert.equal($('#api-key-remember').checked,true);
+    assert.equal($('#api-key-forget').hidden,false);
+    $('#api-key-forget').onclick();
+    assert.equal(readStored(PROVIDER_CREDENTIALS_KEY,null),null);
+    assert.equal($('#api-key-input').value,'');
+    $('#api-key-cancel').onclick();
+    assert.equal(await edit,null);
+  `);
+});
+
+test('new game requests provider credentials before character selection', async () => {
+  await harness().run(`
+    let shown='home'; showScreen=(screen)=>{shown=screen;};
+    const pending=beginNewGame();
+    assert.equal($('#api-key-modal').hidden,false);
+    assert.equal(shown,'home');
+    $('#api-key-input').value='sk-test-before-character-123456789';
+    $('#api-key-form').onsubmit({preventDefault(){}});
+    await pending;
+    assert.equal(shown,'character-screen');
+  `);
+});
+
 test('journal ignores obsolete filters, preserves all public rounds and excludes private events', async () => {
   await harness().run(`
     const base={visibility:'PUBLIC',round:1};

@@ -158,13 +158,16 @@ const copy = {
     networkError: "ارتباط با شهر قطع شد. دوباره تلاش کن.",
     accessDenied: "کد دسترسی بازی آنلاین نادرست است.",
     apiKeyTitle: "با Provider و کلید خودت بازی کن",
-    apiKeyHelp: "Provider و مدل را انتخاب کن. کلید فقط برای اجرای نوبت‌های همین بازی به سرور رسمی همان Provider فرستاده می‌شود و در مرورگر، دفتر وقایع یا ذخیرهٔ بازی نگهداری نمی‌شود.",
+    apiKeyHelp: "Provider و مدل را انتخاب کن. کلید برای اجرای نوبت‌ها فقط به سرور رسمی همان Provider فرستاده می‌شود. ذخیره در این مرورگر اختیاری است.",
     apiProviderLabel: "ارائه‌دهندهٔ مدل",
     apiModelLabel: "نام مدل",
     apiKeyLabel: "API Key",
     apiKeyPlaceholder: "کلید Provider انتخاب‌شده",
     apiKeyContinue: "ادامه با کلید من",
     apiKeyCancel: "فعلاً نه",
+    apiKeyRemember: "کلید را در این مرورگر ذخیره کن",
+    apiKeyStorageHelp: "فقط روی دستگاه شخصی فعالش کن. کلید تا زمان حذف، در حافظه محلی همین مرورگر می‌ماند.",
+    apiKeyForget: "حذف کلید ذخیره‌شده",
     apiKeyRejected: "Provider، نام مدل یا کلید نتوانست نوبت را اجرا کند. تنظیمات و دسترسی مدل را بررسی کن.",
     claimedRole: "نقش ادعایی",
     facts: "دفتر وقایع",
@@ -265,13 +268,16 @@ const copy = {
     networkError: "The connection to the city was lost. Try again.",
     accessDenied: "The online play access code is incorrect.",
     apiKeyTitle: "Play with your own provider and key",
-    apiKeyHelp: "Choose a provider and model. The key is sent only to that provider's official server to run turns in this game and is never saved in the browser, case file, or game snapshot.",
+    apiKeyHelp: "Choose a provider and model. The key is sent only to that provider's official server to run turns. Saving it in this browser is optional.",
     apiProviderLabel: "Model provider",
     apiModelLabel: "Model name",
     apiKeyLabel: "API Key",
     apiKeyPlaceholder: "Key for the selected provider",
     apiKeyContinue: "CONTINUE WITH MY KEY",
     apiKeyCancel: "NOT NOW",
+    apiKeyRemember: "Remember the key in this browser",
+    apiKeyStorageHelp: "Use this only on a personal device. The key remains in this browser's local storage until you remove it.",
+    apiKeyForget: "FORGET SAVED KEY",
     apiKeyRejected: "The provider, model name, or key could not run the turn. Check the settings and model access.",
     claimedRole: "Claimed role",
     facts: "Case file",
@@ -372,13 +378,16 @@ const copy = {
     networkError: "Die Verbindung zur Stadt wurde unterbrochen. Versuche es erneut.",
     accessDenied: "Der Zugangscode für das Online-Spiel ist falsch.",
     apiKeyTitle: "Mit eigenem Anbieter und Schlüssel spielen",
-    apiKeyHelp: "Wähle Anbieter und Modell. Der Schlüssel wird nur für Spielzüge an den offiziellen Server dieses Anbieters gesendet und weder im Browser noch in der Spielakte oder im Spielstand gespeichert.",
+    apiKeyHelp: "Wähle Anbieter und Modell. Der Schlüssel wird für Spielzüge nur an den offiziellen Server dieses Anbieters gesendet. Das Speichern in diesem Browser ist optional.",
     apiProviderLabel: "Modellanbieter",
     apiModelLabel: "Modellname",
     apiKeyLabel: "API Key",
     apiKeyPlaceholder: "Schlüssel des gewählten Anbieters",
     apiKeyContinue: "MIT MEINEM SCHLÜSSEL WEITER",
     apiKeyCancel: "JETZT NICHT",
+    apiKeyRemember: "Schlüssel in diesem Browser speichern",
+    apiKeyStorageHelp: "Nur auf einem persönlichen Gerät verwenden. Der Schlüssel bleibt bis zum Löschen im lokalen Browserspeicher.",
+    apiKeyForget: "GESPEICHERTEN SCHLÜSSEL LÖSCHEN",
     apiKeyRejected: "Anbieter, Modellname oder Schlüssel konnten den Zug nicht ausführen. Prüfe Einstellungen und Modellzugriff.",
     claimedRole: "Behauptete Rolle",
     facts: "Fallakte",
@@ -519,10 +528,13 @@ const participantProviderDefaults = {
   gemini: "gemini-2.5-flash",
   openrouter: "openai/gpt-4.1-mini",
 };
-let participantCredentials = null;
-let participantCredentialDraft = null;
-let credentialDrivePromise = null;
 const SESSION_KEY = "palermo-active-session-v1";
+const PROVIDER_CREDENTIALS_KEY = "palermo-provider-credentials-v1";
+let participantCredentials = readParticipantCredentials();
+let participantCredentialDraft = participantCredentials
+  ? { provider: participantCredentials.provider, model: participantCredentials.model }
+  : null;
+let credentialDrivePromise = null;
 let recoveryTimer = null;
 let recoveryDelay = 1000;
 
@@ -543,13 +555,39 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
   } finally { clearTimeout(timer); }
 }
 
-function requestParticipantCredentials() {
-  if (participantCredentials?.apiKey) return Promise.resolve(participantCredentials);
+function validParticipantCredentials(value) {
+  return Boolean(value && participantProviderDefaults[value.provider]
+    && typeof value.model === "string"
+    && /^[A-Za-z0-9][A-Za-z0-9._:/-]{1,119}$/.test(value.model)
+    && typeof value.apiKey === "string"
+    && value.apiKey.length >= 20 && value.apiKey.length <= 512);
+}
+
+function readParticipantCredentials() {
+  const saved = readStored(PROVIDER_CREDENTIALS_KEY, null);
+  if (validParticipantCredentials(saved)) return saved;
+  try { localStorage.removeItem(PROVIDER_CREDENTIALS_KEY); } catch { /* Storage may be disabled. */ }
+  return null;
+}
+
+function resetTransientParticipantCredentials() {
+  participantCredentials = readParticipantCredentials();
+  participantCredentialDraft = participantCredentials
+    ? { provider: participantCredentials.provider, model: participantCredentials.model }
+    : null;
+}
+
+function requestParticipantCredentials({ force = false } = {}) {
+  if (!force && participantCredentials?.apiKey) return Promise.resolve(participantCredentials);
   const modal = $("#api-key-modal");
   const form = $("#api-key-form");
   const providerInput = $("#api-provider-select");
   const modelInput = $("#api-model-input");
   const keyInput = $("#api-key-input");
+  const rememberInput = $("#api-key-remember");
+  const forgetButton = $("#api-key-forget");
+  const savedCredentials = readParticipantCredentials();
+  const currentCredentials = participantCredentials || savedCredentials;
   $("#api-key-title").textContent = text("apiKeyTitle");
   $("#api-key-help").textContent = text("apiKeyHelp");
   $("#api-provider-label").textContent = text("apiProviderLabel");
@@ -558,9 +596,14 @@ function requestParticipantCredentials() {
   keyInput.placeholder = text("apiKeyPlaceholder");
   $("#api-key-submit").textContent = text("apiKeyContinue");
   $("#api-key-cancel").textContent = text("apiKeyCancel");
-  const preferredProvider = participantCredentialDraft?.provider || state.run?.ai_provider || "openai";
+  $("#api-key-remember-label").textContent = text("apiKeyRemember");
+  $("#api-key-storage-help").textContent = text("apiKeyStorageHelp");
+  forgetButton.textContent = text("apiKeyForget");
+  forgetButton.hidden = !savedCredentials;
+  rememberInput.checked = Boolean(savedCredentials);
+  const preferredProvider = currentCredentials?.provider || participantCredentialDraft?.provider || state.run?.ai_provider || "openai";
   providerInput.value = participantProviderDefaults[preferredProvider] ? preferredProvider : "openai";
-  modelInput.value = participantCredentialDraft?.model
+  modelInput.value = currentCredentials?.model || participantCredentialDraft?.model
     || (state.run?.ai_provider === providerInput.value ? state.run?.ai_model : "")
     || participantProviderDefaults[providerInput.value];
   $("#api-provider-kicker").textContent = providerInput.options[providerInput.selectedIndex].text;
@@ -570,7 +613,7 @@ function requestParticipantCredentials() {
   };
   modal.hidden = false;
   document.body.classList.add("has-credential-modal");
-  keyInput.value = "";
+  keyInput.value = currentCredentials?.apiKey || "";
   window.setTimeout(() => keyInput.focus(), 0);
   return new Promise((resolve) => {
     const finish = (value) => {
@@ -580,6 +623,7 @@ function requestParticipantCredentials() {
       form.onsubmit = null;
       providerInput.onchange = null;
       $("#api-key-cancel").onclick = null;
+      forgetButton.onclick = null;
       resolve(value);
     };
     form.onsubmit = (event) => {
@@ -589,7 +633,20 @@ function requestParticipantCredentials() {
       if (apiKey.length < 20 || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{1,119}$/.test(model)) return;
       participantCredentials = { provider: providerInput.value, model, apiKey };
       participantCredentialDraft = { provider: providerInput.value, model };
+      try {
+        if (rememberInput.checked) localStorage.setItem(PROVIDER_CREDENTIALS_KEY, JSON.stringify(participantCredentials));
+        else localStorage.removeItem(PROVIDER_CREDENTIALS_KEY);
+      } catch { /* Storage may be disabled. Keep credentials in this tab. */ }
       finish(participantCredentials);
+    };
+    forgetButton.onclick = () => {
+      try { localStorage.removeItem(PROVIDER_CREDENTIALS_KEY); } catch { /* Storage may be disabled. */ }
+      participantCredentials = null;
+      participantCredentialDraft = { provider: providerInput.value, model: modelInput.value.trim() };
+      keyInput.value = "";
+      rememberInput.checked = false;
+      forgetButton.hidden = true;
+      keyInput.focus();
     };
     $("#api-key-cancel").onclick = () => finish(null);
   });
@@ -619,6 +676,7 @@ async function driveParticipantRun() {
           model: credentials.model,
         };
         participantCredentials = null;
+        try { localStorage.removeItem(PROVIDER_CREDENTIALS_KEY); } catch { /* Storage may be disabled. */ }
         toast(text("apiKeyRejected"));
         continue;
       }
@@ -1893,8 +1951,7 @@ function showMorning(event) {
 }
 
 function showGameOver() {
-  participantCredentials = null;
-  participantCredentialDraft = null;
+  resetTransientParticipantCredentials();
   state.stage = "game_over";
   const winner = state.public.winner ? text("roles")[state.public.winner] || state.public.winner : "—";
   renderStory({
@@ -2070,7 +2127,7 @@ async function endSavedGame() {
     });
     await response.json();
     if (!response.ok && ![404, 409].includes(response.status)) throw new Error("cancel_failed");
-    clearSession(); participantCredentials = null; participantCredentialDraft = null; state.gameId = null; state.token = null; state.pendingAction = null;
+    clearSession(); resetTransientParticipantCredentials(); state.gameId = null; state.token = null; state.pendingAction = null;
     refreshResumeControls(); return true;
   } catch { toast(text("networkError")); return false; }
 }
@@ -2082,14 +2139,14 @@ async function goHome() {
   if (state.eventSource) state.eventSource.close();
   window.clearTimeout(syncTimer); window.clearTimeout(recoveryTimer); recoveryTimer = null;
   syncAgain = false; syncNeedsRoute = false;
-  participantCredentials = null;
-  participantCredentialDraft = null;
+  resetTransientParticipantCredentials();
   state.stage = "home"; state.archiveMode = false;
   renderArchives(); refreshResumeControls(); showScreen("home");
 }
 
 async function beginNewGame() {
   if (readStored(SESSION_KEY, null) && !await endSavedGame()) return;
+  if (!await requestParticipantCredentials({ force: true })) return;
   showScreen("character-screen");
 }
 

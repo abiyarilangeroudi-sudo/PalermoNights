@@ -589,7 +589,9 @@ class AIAgent:
             "reasoning_summary is a brief decision summary, not private chain of thought. "
             "In text use exact player placeholders such as {{P6}} and list those IDs in referenced_players. "
             "ASK addresses one target; ANSWER responds to your pending questions in one action. "
-            "Keep public dialogue conversational and in character; technical event identifiers belong outside dialogue. "
+            "Write public dialogue like restrained crime-film conversation: short, tense, concrete, and natural, with an occasional atmospheric phrase. "
+            "Keep evidence and the immediate situation central. Avoid melodrama, stock noir lines, threats without purpose, stage directions, and repeated catchphrases. "
+            "Technical event identifiers belong outside dialogue. "
             f"Write player-visible text in {language}."
         )
 
@@ -682,16 +684,16 @@ class AIAgent:
     def _fallback_text(self, kind: str) -> str:
         texts = {
             "fa": {
-                "speak": "فعلاً به تناقض ادعاها و الگوی رأی‌ها توجه می‌کنم.",
-                "answer": "رأی و ادعایم را بر اساس شواهد عمومی توضیح می‌دهم.",
+                "speak": "این شهر ساکت است، اما رأی‌ها حرف می‌زنند؛ تناقض ادعاها را زیر نظر دارم.",
+                "answer": "حرفم روشن است: ادعا و رأی من روی همان شواهدی است که همه دیده‌ایم.",
             },
             "en": {
-                "speak": "For now, I am watching contradictions and voting patterns.",
-                "answer": "I will explain my claim and vote using the public evidence.",
+                "speak": "The city is quiet, but the votes are talking. I am watching every contradiction.",
+                "answer": "My story is simple: my claim and vote follow the evidence everyone saw.",
             },
             "de": {
-                "speak": "Vorerst achte ich auf Widersprüche und Abstimmungsmuster.",
-                "answer": "Ich begründe meine Behauptung und Stimme mit öffentlichen Hinweisen.",
+                "speak": "Die Stadt schweigt, doch die Stimmen reden. Ich beobachte jeden Widerspruch.",
+                "answer": "Meine Geschichte ist klar: Behauptung und Stimme folgen den sichtbaren Hinweisen.",
             },
         }
         return texts[self.language][kind]
